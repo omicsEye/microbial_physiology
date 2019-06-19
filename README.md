@@ -1,5 +1,5 @@
 # m2interact
-Extracts microbial physiological traits from online sources, mergining them into a single, formated table
+Extracts microbial physiological traits from online sources, merging them into a single, formated table
 
 ## Sourcing Microbial Data 
 
@@ -30,19 +30,19 @@ BacDiveCrawler() retrieves information from the BacDive API, organizing it into 
 *save_file* if true, saves a .csv to the working directory containing the information extracted from the BacDive API
 
 #### *Details*
-Designed to traverse the API provided by BacDive. The BacDive API provides a database that can easily queried, providing microbial physiology data in JSON, HTML, or XML formats. Each specie contains its own ‘page’, which details information such as taxonomy, morphology, strain information, and more. This script currently selectively chooses certain traits to record, meaning that there is more data that could be chosen to extracted, if implemented. 
+Designed to traverse the API provided by BacDive. The BacDive API provides a database that can easily queried, providing microbial physiology data in the JSON format. Each specie contains its own ‘page’, which details information such as taxonomy, morphology, strain information, and more. This script currently selectively chooses certain traits to record, meaning that there is more data that could be chosen to extracted, if implemented. 
 
 #### *Value*
 Returns a data.frame containing information extracted from BacDive
 
 #### *Warning*
-Because this traverses the site’s available API, it is still limited by internet connection speeds and the rate at which the site’s server responds. This can be detrimental to the speed at which the script can run. A possible future improvement would be to request multiple links at once, rather than one at a time. However, this, too, could prove problematic as the site’s server could be overloaded. 
+Because this traverses the site’s API, it is still limited by internet speeds and the rate at which the site’s server responds. This can be detrimental to the speed at which the script can run. A possible future improvement would be to request multiple links at once, rather than one at a time. However, this, too, could prove problematic as the site’s server could be overloaded. 
 
 
 #### `CleanProTrait`
 
 #### *Description* 
-CleanProTrait() retrieves information from a file downloaded from the ProTrait Atlas, formatting into a table
+CleanProTrait() retrieves information from a file downloaded from the ProTrait Atlas, formatting it into a table
 
 #### *Usage* 
 `CleanProTrait(save_file = TRUE)`
@@ -58,7 +58,7 @@ It will first check if the ProTrait file already exists in the working directory
 Returns a data.frame containing information extracted from ProTrait
 
 
-#### `CombineData**`
+#### `CombineData`
 
 #### *Description*
 CombineData() combines the given tables into a single, formatted table
@@ -74,13 +74,14 @@ CombineData() combines the given tables into a single, formatted table
 *save_file*	if true, saves a .csv to the working directory containing the information resulting from the combined table
 
 #### *Details*
-CombineData.R is a script that merges the tables extracted from BacDive and ProTrait. This script is required because the column labels produced for each of these tables are different and they are different traits extracted in general. This script works to create one cohesive table. 
+CombineData.R is a script that merges the tables extracted from BacDive and ProTrait. This script is required because the column labels produced for each of these tables are different and there are different traits extracted in general. This script works to create one cohesive table. 
 
 #### *Value*
 Returns a data.frame containing a information from the combined tables
 
 #### *Warning*
-This script lacks the functionality of being able to merge any two given tables. This therefore leaves it limited to the tables produced by the ProTrait and BacDive functions  
+This script lacks the functionality of being able to merge any two given tables. This therefore leaves it limited to the tables produced by the ProTrait and BacDive functions.
+It also does not yet handle duplicate species. 
 
 ------------------------------------------------------------------------------------------------------------------------------
 
