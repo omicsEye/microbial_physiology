@@ -1,5 +1,5 @@
-library(RCurl)
 library(rjson)
+
 # get JSON response from a given url
 GetJSONResponse <- function(usrname, pass, url) {
   # get server response
@@ -61,254 +61,279 @@ GetMultiData <- function(current_entry, data, data_entry, checker) {
 }
 
 # Queries BacDove API
-BacDiveCrawler <- function(usrname, pass, num_requests = 10, save_file = TRUE) {
-  # All traits that are to be extracted from BacDive data
-  taxonomic_trait <-
-    c(
-      "Species",
-      "Domain",
-      "Phylum",
-      "Class",
-      "Order",
-      "Family",
-      "Genus",
-      "Gram stain",
-      "Cell length",
-      "Cell width",
-      "Cell shape",
-      "Motility",
-      "Type of hemolysis",
-      "Hemolysis Ability",
-      "Colony color",
-      "Colony size",
-      "Colony shape",
-      "Flagella",
-      "Incubation period",
-      "Ability of spore formation",
-      "Type of spore",
-      "Multicellular complex forming ability",
-      "Murein short key",
-      "Murein types",
-      "Oxygen tolerance",
-      "Nutrition type",
-      "met_antibiotica",
-      "halophily",
-      "met_util",
-      "met_production",
-      "enzymes",
-      "Temperature range",
-      "pH",
-      "Pathogenic in humans",
-      "Pathogenic in animals",
-      "Pathogenic in plants"
-    )
-  
-  # table that will hold all extracted data
-  table <-
-    data.frame(matrix(NA, nrow = 0, ncol = length(taxonomic_trait)))
-  names(table) <- taxonomic_trait
-  
-  # to find links to microbial data, this is the first such page
-  next_page <-
-    'https://bacdive.dsmz.de/api/bacdive/bacdive_id/?page=24'
-  
-  microbe_count <- 0
-  # continue running until there is no page left
-  
-  while (length(next_page) > 0 || !is.na(next_page)) {
-    # get all urls from page
-    allbacdiveIDs <- next_page
-    url_allbacdiveIDs <-
-      URLencode(paste0(allbacdiveIDs, '&format=json'))
+BacDiveCrawler <-
+  function(usrname = 'mbarbini@broadinstitute.org',
+           pass = 'trellointeractions',
+           num_requests = 10,
+           save_file = TRUE) {
+    # All traits that are to be extracted from BacDive data
+    taxonomic_trait <-
+      c(
+        "Species",
+        "Domain",
+        "Phylum",
+        "Class",
+        "Order",
+        "Family",
+        "Genus",
+        "Gram stain",
+        "Cell length",
+        "Cell width",
+        "Cell shape",
+        "Motility",
+        "Type of hemolysis",
+        "Hemolysis Ability",
+        "Colony color",
+        "Colony size",
+        "Colony shape",
+        "Flagella",
+        "Incubation period",
+        "Ability of spore formation",
+        "Type of spore",
+        "Multicellular complex forming ability",
+        "Murein short key",
+        "Murein types",
+        "Oxygen tolerance",
+        "Nutrition type",
+        "met_antibiotica",
+        "halophily",
+        "met_util",
+        "met_production",
+        "enzymes",
+        "Temperature range",
+        "pH",
+        "Pathogenic in humans",
+        "Pathogenic in animals",
+        "Pathogenic in plants"
+      )
     
-    id_result <- GetJSONResponse(usrname, pass, url_allbacdiveIDs)
-    next_page <-
-      id_result$'next'  # update what the next search page will be
-    results <- id_result$results  # all microbial links on the page
-    results_length <- length(results)
+    # table that will hold all extracted data
+    table <-
+      data.frame(matrix(NA, nrow = 0, ncol = length(taxonomic_trait)))
+    names(table) <- taxonomic_trait
     
-    # querry all microbial links found
-    total_count <- 0  # how many microbes have been querried on page
-    while(total_count < results_length) {
-      url_list <- c()  # urls to download at once
+    # to find links to microbial data, this is the base url
+    url_page <-
+      'https://bacdive.dsmz.de/api/bacdive/bacdive_id/'
+    
+    page <- 1  # which microbe page currrently on
+    
+    message("Began BacDive")
+    
+    while (TRUE) {
+      url_list <- c()  # which urls to request
       
-      # add URLs to list  
-      count <- 1
-      while(count %% (num_requests + 1) != 0 &
-            total_count + count <= results_length) {  # how many URLS to get at once
-        url_list <- append(url_list, URLencode(paste0(results[[total_count + count]][[1]], '/?format=json')))
-        count <- count + 1
+      for (i in 1:num_requests) {
+        url_list <-
+          append(url_list, URLencode(paste0(url_page, page, '/?format=json')))
+        page <- page + 1
+        
+        # check progress
+        if (page %% 100 == 0) {
+          num_results <- nrow(table)
+          message(paste("Gathered", num_results, "results"))  # prompt user about progress
+        }
       }
-      total_count <- total_count + count - 1
+      
       # download URLs
-      respones <- getURLAsynchronous(url_list, userpwd = paste0(usrname, ":", pass),
-                                     httpauth = 1L)
-
-      for (i in 1:length(respones)) {
-        # create a row for the new microbe
-        current_row <-
-          data.frame(matrix(NA, nrow = 1, ncol = length(taxonomic_trait)))
-        names(current_row) <- taxonomic_trait
-
-        # get the data about the microbe
-        species_result <- rjson::fromJSON(respones[i])
-
-        # get taxonomy data
-        taxonomy_data <- species_result$taxonomy_name$strains[[1]]
-        current_row$Domain <- UpdateCell(NA, taxonomy_data$domain)
-        current_row$Phylum <- UpdateCell(NA, taxonomy_data$phylum)
-        current_row$Class <- UpdateCell(NA, taxonomy_data$class)
-        current_row$Order <- UpdateCell(NA, taxonomy_data$ordo)
-        current_row$Family <- UpdateCell(NA, taxonomy_data$family)
-        current_row$Genus <- UpdateCell(NA, taxonomy_data$genus)
-        current_row$Species <- UpdateCell(NA, taxonomy_data$species)
-
-        # get morhology data
-        morphology_data <- species_result$morphology_physiology
-
-        # cell morphology
-        cell_data <- morphology_data$cell_morphology[[1]]
-        current_row$`Gram stain` <-
-          UpdateCell(NA, cell_data$gram_stain)
-        current_row$`Cell length` <-
-          UpdateCell(NA, cell_data$cell_len)
-        current_row$`Cell width` <-
-          UpdateCell(NA, cell_data$cell_width)
-        current_row$`Cell shape` <-
-          UpdateCell(NA, cell_data$cell_shape)
-        current_row$Motility <- UpdateCell(NA, cell_data$motility)
-        current_row$Flagella <-
-          UpdateCell(NA, cell_data$flagellum_arrangement)
-
-        # colony data
-        colony_data <- morphology_data$colony_morphology[[1]]
-        current_row$`Type of hemolysis` <-
-          UpdateCell(NA, colony_data$hemolysis_type)
-        current_row$`Hemolysis Ability` <-
-          UpdateCell(NA, colony_data$hemolysis_ability)
-        current_row$`Colony size` <-
-          UpdateCell(NA, colony_data$colony_len)
-        current_row$`Colony color` <-
-          UpdateCell(NA, colony_data$colony_color)
-        current_row$`Colony shape` <-
-          UpdateCell(NA, colony_data$colony_shape)
-        current_row$`Incubation period` <-
-          UpdateCell(NA, colony_data$incubation_period)
-
-        # mutlicellular data
-        multicellular_data <-
-          morphology_data$multicellular_morphology[[1]]
-        current_row$`Multicellular complex forming ability` <-
-          UpdateCell(NA, multicellular_data$ability)
-
-        # spore data
-        spore_data <- morphology_data$spore_formation[[1]]
-        current_row$`Type of spore` <- UpdateCell(NA, spore_data$type)
-        current_row$`Ability of spore formation` <-
-          UpdateCell(NA, spore_data$ability)
-
-        # murein data
-        murein_data <- morphology_data$murein[[1]]
-        current_row$`Murein short key` <-
-          UpdateCell(NA, murein_data$murein_short_index)
-        current_row$`Murein types` <-
-          UpdateCell(NA, murein_data$murein_types)
-
-        # nutrition data
-        nutrition_data <- morphology_data$nutrition_type[[1]]
-        current_row$`Nutrition type` <-
-          UpdateCell(NA, nutrition_data$nutrition_type)
-
-        # oxygen tolerance data
-        oxygen_data <- morphology_data$oxygen_tolerance[[1]]
-        current_row$`Oxygen tolerance` <-
-          UpdateCell(NA, oxygen_data$oxygen_tol)
-
-        # compound production data
-        compound_data <- morphology_data$compound_production
-        current_row$met_production <-
-          GetMultiData(current_row$met_production,
-                       compound_data,
-                       'compound_name',
-                       NULL)
-        compound_data <- morphology_data$met_production
-        current_row$met_production <-
-          GetMultiData(current_row$met_production,
-                       compound_data,
-                       'metabolite_prod',
-                       'production')
-
-        # metabolite utilization data
-        compound_data <- morphology_data$met_util
-        current_row$met_util <-
-          GetMultiData(current_row$met_util,
-                       compound_data,
-                       'metabolite_util',
-                       'ability')
-
-        # antiobiotic resistance data
-        anti_data <- morphology_data$met_antibiotica
-        current_row$met_antibiotica <-
-          GetMultiData(current_row$met_antibiotica,
-                       anti_data,
-                       'metabolite_antib',
-                       'ab_resistant')
-
-
-        # enzyme data
-        enzyme_data <- morphology_data$enzymes
-        current_row$enzymes <-
-          GetMultiData(current_row$enzymes, enzyme_data, 'enzyme', 'activity')
-
-        # halophily data
-        halophily_data <- morphology_data$halophily
-        current_row$halophily <-
-          GetMultiData(current_row$halophily,
-                       halophily_data,
-                       "salt_concentration",
-                       'ability')
-
-        # get temperature data
-        temperature_data <-
-          species_result$culture_growth_condition$culture_temp
-        current_row$`Temperature range` <-
-          GetMultiData(
-            current_row$`Temperature range`,
-            temperature_data,
-            'temperature_range',
-            'ability'
-          )
-
-        # get pH data
-        ph_data <- species_result$culture_growth_condition$culture_pH
-        current_row$pH <-
-          GetMultiData(current_row$pH, ph_data, 'pH', 'ability')
-
-        # get pathogenic data
-        pathogenic_data <-
-          species_result$application_interaction$risk_assessment[[1]]
-        current_row$`Pathogenic in humans` <-
-          UpdateCell(NA, pathogenic_data$pathogenicity_human)
-        current_row$`Pathogenic in animals` <-
-          UpdateCell(NA, pathogenic_data$pathogenicity_animal)
-        current_row$`Pathogenic in plants` <-
-          UpdateCell(NA, pathogenic_data$pathogenicity_plant)
-
-        # update tabe with new row
-        table <- rbind(table, current_row)
-      }
+      responses <-
+        try(withTimeout(
+          Async$new(urls = url_list,
+                    auth = auth(user = usrname, pwd = pass)),
+          timeout = 5,
+          onTimeout = "error"
+        ))
+      responses <- cc$get()
       
+      if (class(responses) != "try-error") {
+        for (i in 1:length(responses)) {
+          # get the data about the microbe
+          species_result <- try(fromJSON(responses[[i]]))
+          
+          if (class(species_result) != "try-error" &
+              is.null(species_result$detail))  {
+            # create a row for the new microbe
+            current_row <-
+              data.frame(matrix(
+                NA,
+                nrow = 1,
+                ncol = length(taxonomic_trait)
+              ))
+            names(current_row) <- taxonomic_trait
+            
+            # get taxonomy data
+            taxonomy_data <-
+              species_result$taxonomy_name$strains[[1]]
+            current_row$Domain <-
+              UpdateCell(NA, taxonomy_data$domain)
+            current_row$Phylum <-
+              UpdateCell(NA, taxonomy_data$phylum)
+            current_row$Class <- UpdateCell(NA, taxonomy_data$class)
+            current_row$Order <- UpdateCell(NA, taxonomy_data$ordo)
+            current_row$Family <-
+              UpdateCell(NA, taxonomy_data$family)
+            current_row$Genus <- UpdateCell(NA, taxonomy_data$genus)
+            current_row$Species <-
+              UpdateCell(NA, taxonomy_data$species)
+            
+            # get morhology data
+            morphology_data <- species_result$morphology_physiology
+            
+            # cell morphology
+            cell_data <- morphology_data$cell_morphology[[1]]
+            current_row$`Gram stain` <-
+              UpdateCell(NA, cell_data$gram_stain)
+            current_row$`Cell length` <-
+              UpdateCell(NA, cell_data$cell_len)
+            current_row$`Cell width` <-
+              UpdateCell(NA, cell_data$cell_width)
+            current_row$`Cell shape` <-
+              UpdateCell(NA, cell_data$cell_shape)
+            current_row$Motility <-
+              UpdateCell(NA, cell_data$motility)
+            current_row$Flagella <-
+              UpdateCell(NA, cell_data$flagellum_arrangement)
+            
+            # colony data
+            colony_data <- morphology_data$colony_morphology[[1]]
+            current_row$`Type of hemolysis` <-
+              UpdateCell(NA, colony_data$hemolysis_type)
+            current_row$`Hemolysis Ability` <-
+              UpdateCell(NA, colony_data$hemolysis_ability)
+            current_row$`Colony size` <-
+              UpdateCell(NA, colony_data$colony_len)
+            current_row$`Colony color` <-
+              UpdateCell(NA, colony_data$colony_color)
+            current_row$`Colony shape` <-
+              UpdateCell(NA, colony_data$colony_shape)
+            current_row$`Incubation period` <-
+              UpdateCell(NA, colony_data$incubation_period)
+            
+            # mutlicellular data
+            multicellular_data <-
+              morphology_data$multicellular_morphology[[1]]
+            current_row$`Multicellular complex forming ability` <-
+              UpdateCell(NA, multicellular_data$ability)
+            
+            # spore data
+            spore_data <- morphology_data$spore_formation[[1]]
+            current_row$`Type of spore` <-
+              UpdateCell(NA, spore_data$type)
+            current_row$`Ability of spore formation` <-
+              UpdateCell(NA, spore_data$ability)
+            
+            # murein data
+            murein_data <- morphology_data$murein[[1]]
+            current_row$`Murein short key` <-
+              UpdateCell(NA, murein_data$murein_short_index)
+            current_row$`Murein types` <-
+              UpdateCell(NA, murein_data$murein_types)
+            
+            # nutrition data
+            nutrition_data <- morphology_data$nutrition_type[[1]]
+            current_row$`Nutrition type` <-
+              UpdateCell(NA, nutrition_data$nutrition_type)
+            
+            # oxygen tolerance data
+            oxygen_data <- morphology_data$oxygen_tolerance[[1]]
+            current_row$`Oxygen tolerance` <-
+              UpdateCell(NA, oxygen_data$oxygen_tol)
+            
+            # compound production data
+            compound_data <- morphology_data$compound_production
+            current_row$met_production <-
+              GetMultiData(current_row$met_production,
+                           compound_data,
+                           'compound_name',
+                           NULL)
+            compound_data <- morphology_data$met_production
+            current_row$met_production <-
+              GetMultiData(
+                current_row$met_production,
+                compound_data,
+                'metabolite_prod',
+                'production'
+              )
+            
+            # metabolite utilization data
+            compound_data <- morphology_data$met_util
+            current_row$met_util <-
+              GetMultiData(current_row$met_util,
+                           compound_data,
+                           'metabolite_util',
+                           'ability')
+            
+            # antiobiotic resistance data
+            anti_data <- morphology_data$met_antibiotica
+            current_row$met_antibiotica <-
+              GetMultiData(
+                current_row$met_antibiotica,
+                anti_data,
+                'metabolite_antib',
+                'ab_resistant'
+              )
+            
+            
+            # enzyme data
+            enzyme_data <- morphology_data$enzymes
+            current_row$enzymes <-
+              GetMultiData(current_row$enzymes,
+                           enzyme_data,
+                           'enzyme',
+                           'activity')
+            
+            # halophily data
+            halophily_data <- morphology_data$halophily
+            current_row$halophily <-
+              GetMultiData(current_row$halophily,
+                           halophily_data,
+                           "salt_concentration",
+                           'ability')
+            
+            # get temperature data
+            temperature_data <-
+              species_result$culture_growth_condition$culture_temp
+            current_row$`Temperature range` <-
+              GetMultiData(
+                current_row$`Temperature range`,
+                temperature_data,
+                'temperature_range',
+                'ability'
+              )
+            
+            # get pH data
+            ph_data <-
+              species_result$culture_growth_condition$culture_pH
+            current_row$pH <-
+              GetMultiData(current_row$pH, ph_data, 'pH', 'ability')
+            
+            # get pathogenic data
+            pathogenic_data <-
+              species_result$application_interaction$risk_assessment[[1]]
+            current_row$`Pathogenic in humans` <-
+              UpdateCell(NA, pathogenic_data$pathogenicity_human)
+            current_row$`Pathogenic in animals` <-
+              UpdateCell(NA, pathogenic_data$pathogenicity_animal)
+            current_row$`Pathogenic in plants` <-
+              UpdateCell(NA, pathogenic_data$pathogenicity_plant)
+            
+            # update tabe with new row
+            table <- rbind(table, current_row)
+          } else {
+            print("didnt find anything on current page")
+          }
+        }
+      } else {
+        print("skipped URL due to timeout")
+      }
     }
-    microbe_count <- microbe_count + total_count
-    message(paste("Gathered", microbe_count,"results"))  # prompt user about progress
+    table <-
+      apply(table, 2, as.character)  # remove unwanted formating
+    
+    # save table to working directory
+    if (save_file) {
+      write.csv(table, paste0("BacDive_v", Sys.Date(), ".csv"), row.names = FALSE)
+    }
+    message("Completed bacdive query")  # prompt user about completion
+    return(table)
   }
-  table <-
-    apply(table, 2, as.character)  # remove unwanted formating
-  
-  # save table to working directory
-  if (save_file) {
-    write.csv(table, paste0("BacDive_v", Sys.Date(), ".csv"), row.names = FALSE)
-  }
-  message("Completed bacdive query")  # prompt user about completion
-  return(table)
-}
