@@ -1,4 +1,6 @@
 library(rjson)
+library(R.utils)
+library(crul)
 
 # get JSON response from a given url
 GetJSONResponse <- function(usrname, pass, url) {
@@ -22,7 +24,7 @@ UpdateCell <- function(current_entry, new_entry) {
       return(new_entry)
       
       # update if new entry is novel
-    } else if (!grepl(new_entry, current_entry)) {
+    } else if (!grepl(new_entry, current_entry, fixed = TRUE)) {
       return(paste(current_entry, new_entry, sep = ', '))
       
       # do not update if new entry not novel
@@ -112,6 +114,12 @@ BacDiveCrawler <-
       data.frame(matrix(NA, nrow = 0, ncol = length(taxonomic_trait)))
     names(table) <- taxonomic_trait
     
+    # to determine how many microbes should find
+    count_page <-
+      'https://bacdive.dsmz.de/api/bacdive/bacdive_id/?page=1/&format=json'
+    response <- GetJSONResponse(usrname, pass, count_page)
+    count <- response$count
+    
     # to find links to microbial data, this is the base url
     url_page <-
       'https://bacdive.dsmz.de/api/bacdive/bacdive_id/'
@@ -120,7 +128,9 @@ BacDiveCrawler <-
     
     message("Began BacDive")
     
-    while (TRUE) {
+    num_results <- 0  # how many species retrieved
+    
+    while (num_results <= count) {
       url_list <- c()  # which urls to request
       
       for (i in 1:num_requests) {
@@ -132,6 +142,16 @@ BacDiveCrawler <-
         if (page %% 100 == 0) {
           num_results <- nrow(table)
           message(paste("Gathered", num_results, "results"))  # prompt user about progress
+          
+          # save copy in case of crash
+          if (save_file & num_results %% 5000 < 100) {
+            table <-
+              apply(table, 2, as.character)  # remove unwanted formating
+            
+            write.csv(table,
+                      paste0("BacDive_v", Sys.Date(), ".csv"),
+                      row.names = FALSE)
+          }
         }
       }
       
@@ -143,12 +163,13 @@ BacDiveCrawler <-
           timeout = 5,
           onTimeout = "error"
         ))
-      responses <- cc$get()
+      responses <- responses$get()
       
       if (class(responses) != "try-error") {
         for (i in 1:length(responses)) {
           # get the data about the microbe
-          species_result <- try(fromJSON(responses[[i]]))
+          species_result <-
+            try(fromJSON(responses[[i]]$parse("UTF-8")))
           
           if (class(species_result) != "try-error" &
               is.null(species_result$detail))  {
@@ -337,3 +358,8 @@ BacDiveCrawler <-
     message("Completed bacdive query")  # prompt user about completion
     return(table)
   }
+
+time_a <- Sys.time()
+bacdive <- BacDiveCrawler()
+time_b <- Sys.time()
+print(time_b - time_a)

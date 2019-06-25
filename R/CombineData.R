@@ -164,7 +164,7 @@ CombineData <- function(protrait, bacdive, save_file = TRUE) {
     
     col_count <- 1
     # check if specie already exists
-    match <- which(ctable[, 1] == new_row[1])
+    match <- which(ctable[, 1] %in% new_row[1])
     if (length(match) > 0) {
       # update first instance
       update_row <- ctable[match[1], ]
