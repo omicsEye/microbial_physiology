@@ -2,6 +2,33 @@ library(pheatmap)
 library(RColorBrewer)
 library(ggplot2)
 
+# load and prepare abundance data from .csv to use for heat map
+# returns a numerical matrix 
+load.abundance.data <- function(path, column = 1) {
+  if(is.na(path)) {
+    path <- file.choose()
+  }
+  abundance_table <- read.delim(path, sep = ",", row.names = column, check.names = FALSE)
+  species <- row.names(abundance_table)
+  abundance_table <- apply(abundance_table, 2, as.numeric)
+  row.names(abundance_table) <- species
+  return(abundance_table)
+}
+
+
+# load and prepare meta data from .csv to use for annotating heat map 
+# returns a data frame
+load.meta.data <- function(path, tax_column = 1) {
+  if(is.na(path)) {
+    path <- file.choose()
+  }
+  data <- read.delim(path, fill=NA, stringsAsFactors = FALSE, sep=',', check.names = FALSE)
+  data <- data[!duplicated(data[, tax_column]),]
+  row.names(data) <- data[, tax_column] 
+  data <- data[, -c(tax_column)]
+  return(data)
+}
+
 # create a correlogram given abundance data and feature metadata
 create.correlogram <- function(data, feature_meta, show = TRUE) {
   # remove incomplete data 

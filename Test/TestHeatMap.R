@@ -1,4 +1,5 @@
 source('R/HeatMap.R')
+library(RAM)
 
 ### FOR TESTING 
 # load metadata
@@ -30,6 +31,13 @@ row.names(sample_data) <- samples
 # row_meta <- microbe_data
 # column_meta <- metabolite_data
 
+
+######################################################################
+# loading using load methods
+microbe_data <- load.meta.data('Data/HMP/mxp_microbiome_v2019-06-25.csv')
+sample_data <- load.meta.data('Data/HMP/SampleMetadata.csv')
+abundance_table <- load.abundance.data('Data/HMP/AbundanceTable.csv')
+
 # Create one v all heatmap
 a <- one.v.all(abundance_table, sample_data, microbe_data, 
                percentile = 0.75, show = TRUE, 
@@ -51,4 +59,13 @@ all.one.v.all(
 c <- create.correlogram(abundance_table, microbe_data[, c(24, 7, 25)], show = TRUE)
 
 # create pcoa plot
-ord_plots <- ordplots(abundance_table, as.data.frame(t(microbe_data[, 25, drop = FALSE])), output = '', outputname = 'pcoa' , method = 'pcoa')
+# pcoa_plot <- 
+#   pcoa.plot(
+#     data = as.data.frame(abundance_table), 
+#     factors = c('Oxygen.tolerance'),
+#     stand.method = 'chi.square', 
+#     meta = microbe_data[, 24, drop = FALSE])
+
+
+abundance_dist <- vegdist(na.omit(abundance_table))
+pcoa_plot <- pcoa(abundance_dist)
