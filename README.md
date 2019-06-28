@@ -46,7 +46,7 @@ all.one.v.all(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATUR
 ```
 
 Instead of a sample x feature heatmap, a correlogram heatmap can be produced. Providing metadata and an abundance data, use the following function
-```correlogram <- create.correlogram(data = <ABUNDANCE>, feature_meta = <METADATA>, show = TRUE)
+```correlogram <- create.correlogram(data = <ABUNDANCE>, feature_meta = <METADATA>, show = TRUE)```
 
 ------------------------------------------------------------------------------------------------------------------------------
 
