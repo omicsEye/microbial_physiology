@@ -2,7 +2,7 @@
 Extracts microbial physiological traits from online sources, merging them into a single, formated table
 
 ### Dependencies
-Jupyter, RCurl, rjson, IRKernal
+Jupyter, RCurl, rjson, IRKernal, pheatmap, ggplot2, RColorBrewer
 
 ## Instructions
 
@@ -11,16 +11,42 @@ This script can be run using the provided Jupyter Notebook. Aside from the liste
 Parameters can be supplied to each function, as well. Their options are listed with the function description found in the [wiki](https://github.com/broadinstitute/m2interact/wiki/Finding-Metadata-for-Microbial-Physiology-Traits/) 
 
 ### Creating Heatmaps
-Abundance data should be loaded from a .csv. A path and the column that contains the feature labels must be supplied. 
-`abundance_table <- load.abundance.data(path = <DATA>, column = <NUMBER>)`
+First, run, `source('R/HeatMap.R')`
+
+Abundance data should be loaded from a .csv. A path and the column that contains the feature labels must be supplied.
+NOTE: The path must be from the working directory
+```R
+abundance_table <- load.abundance.data(path = <DATA>, column = <NUMBER>)
+```
 
 Meta data should be loaded from a .csv. A path and the column that contains the feature labels must be supplied.
-`meta_data <- load.meta.data(path = <DATA>, tax.column = <NUMBER>)`
+NOTE: The path must be from the working directory
+```R
+meta_data <- load.meta.data(path = <DATA>, tax.column = <NUMBER>)
+```
 This can be used to load both sample and feature metadata 
 
 In order to create a heatmap, use the following function, supplying the abundance table, sample metadata, feature metadata. 
-It includes the option of whether to show the heatmap when procuded, and whether to eliminate features that are missing metadata. 
-`heatmap <- create.heatmap(abundance_table, sample_data, microbe_data[, c(24, 7, 25)], show = TRUE, omit_na = FALSE)`
+It includes the optional parameters of whether to filter clusters for a certain percentile, to show the heatmap when procuded, and whether to eliminate features that are missing metadata. 
+```R
+heatmap <- create.heatmap(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATURE>)
+```
+
+There is also the choice of creating heatmaps that compare only one feature type against all others in a feature category (ex. aerobic respiration v all other oxygen requirements). This requires the following function, with the new parameters being 
+* `which` represents whether to use the sample(1) or feature(2) metadata
+* `column` represents the name of the column of the feature category (ex. 'gram type')
+* `trait` represents the feature trait to isoloate (ex. 'variable') 
+```R
+one_heatmap <- one.v.all(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATURE>, which = <NUMBER>, column = <CATEGORY>, trait = <TYPE>)
+```
+
+The following method can be used to repeat this 'one v all' process for every trait type in a trait category, creating a heatmap for each. The produced heatmaps can be saved to a desired directory. 
+```R
+all.one.v.all(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATURE>, which = <NUMBER>, column = <CATEGORY>, directory = <PATH>)
+```
+
+Instead of a sample x feature heatmap, a correlogram heatmap can be produced. Providing metadata and an abundance data, use the following function
+```correlogram <- create.correlogram(data = <ABUNDANCE>, feature_meta = <METADATA>, show = TRUE)
 
 ------------------------------------------------------------------------------------------------------------------------------
 
