@@ -3,21 +3,9 @@ library(foreach)
 library(parallel)
 library(doParallel)
 library(data.table)
-library(rlist)
+library(utils)
 
-# configure for parallelism 
-cl <- parallel::makeCluster(detectCores())
-doParallel::registerDoParallel(cl)
-
-# final formatted table
-df <- as.data.frame(matrix(nrow = 1, ncol = 0))
-
-# For each node, load list
-a <- list()
-# count how many nodes have been added to list
-count <- 0
-
-# For each node, flatten into one list 
+# For each node, flatten into one list
 flatten <- function(x) {
   m <- c()
   for (i in 1:length(x)) {
@@ -36,7 +24,7 @@ flatten <- function(x) {
   return(m[!duplicated(names(m))])
 }
 
-# parallel flattening 
+# parallel flattening
 multi.flatten <- function(x, flatten) {
   return(rbindlist(foreach(i = 1:length(x), flatten) %dopar% {
     flatten(x[[i]])
@@ -45,7 +33,7 @@ multi.flatten <- function(x, flatten) {
 }
 
 # extract necessary data from each metabolite
-getMetabolite <- function(x) {
+get.metabolite <- function(x) {
   a <<- list.append(a, xmlToList(x))
   remove(x)
   count <<- count + 1
@@ -62,21 +50,71 @@ getMetabolite <- function(x) {
   }
 }
 
-# Use event-driven SAX parser to process the XML without requiring the full tree structure to be loaded into memory
-# Call the function defined above
-start_time <- Sys.time()
-xmlEventParse(
-  file = 'Data/Metabolites/hmdb_metabolites.xml',
-  handlers = NULL,
-  trim = TRUE,
-  ignoreBlanks = TRUE,
-  branches = list(metabolite = getMetabolite)
-)
-df <- rbindlist(list(df, multi.flatten(a, flatten)), fill = TRUE)
-print(Sys.time() - start_time)
+# return number of times that pattern appears
+occurrence.symbol <- function(x, pattern) {
+  return(sum(grepl(pattern, unlist(strsplit(x, split = NULL)))))
+}
 
-write.csv(df,
-          paste0("HMDB_", Sys.Date(), ".csv"),
-          row.names = FALSE)
+# determine traits about molecular structure
+# returns a list with the respective data 
+get.molecular <- function(SMILES) {
+  molecular_data <- list()
+  names(molecular_data) <- c('number of carbons', 
+                             'double bonds', 
+                             'triple bonds', 
+                             'quadruple bonds', 
+                             'positive charge',
+                             'negative charge')
+  molecular_data['number of carbons'] <- occurrence.symbol(SMILES, 'C')
+  molecular_data['double bonds'] <- occurrence.symbol(SMILES, '=')
+  molecular_data['triple bonds'] <- occurrence.symbol(SMILES, '#')
+  molecular_data['quadruple bonds'] <- occurrence.symbol(SMILES, '$')
+  molecular_data['positive charge'] <- occurrence.symbol(SMILES, '+')
+  molecular_data['negative charge'] <- occurrence.symbol(SMILES, '-')
+  
+  
+}
 
-stopCluster(cl)
+parse.hmdb <- function(file = 'hmdb_metabolites.xml', link = 'http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip') {
+  # check if local file exists, download if does not
+  if (!file.exists(file)) {
+    download.file(
+      link,
+      file
+    )
+  }
+  
+  # configure for parallelism
+  cl <- parallel::makeCluster(detectCores())
+  doParallel::registerDoParallel(cl)
+  
+  # final formatted table
+  df <- as.data.frame(matrix(nrow = 1, ncol = 0))
+  
+  # For each node, load list
+  a <- list()
+  # count how many nodes have been added to list
+  count <- 0
+  
+  # Use event-driven SAX parser to process the XML without requiring the full tree structure to be loaded into memory
+  # Call the function defined above
+  
+  xmlEventParse(
+    file = file,
+    handlers = NULL,
+    trim = TRUE,
+    ignoreBlanks = TRUE,
+    branches = list(metabolite = get.metabolite))
+  
+  df <- rbindlist(list(df, multi.flatten(a, flatten)), fill = TRUE)
+  
+  # get molecular properties
+  molecular <- as.data.frame(lapply(df$smiles, get.molecular))
+  df <- cbind(df, molecular)
+  
+  write.csv(df,
+            paste0("HMDB_", Sys.Date(), ".csv"),
+            row.names = FALSE)
+  
+  stopCluster(cl)
+}
