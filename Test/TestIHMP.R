@@ -36,16 +36,11 @@ rownames(ihmp) <- ihmp_row_names
 
 
 p <- na.omit(ihmp)
-total_col <- apply(p, 2, sum)
+# p <- apply(p, 1, scale)
 
-i <- 1
-blah <- function(x) {
-  a <- x / total_col[i]
-  i <<- i + 1
-  return(a)
-}
-
-p <- apply(p, 2, blah)
+p <- as(p, "realRatingMatrix")
+p <- normalize(p, method="Z-score", row=TRUE)
+p <- as.matrix(p@data)
 
 # get metabolite metadata
 meta_data <- read.csv(
@@ -88,7 +83,17 @@ rownames(sample_data) <- sample_data$site_sub_coll
 sample_data <- sample_data[-1,-c(1:6)]
 sample_data <- sample_data[, 'site_name', drop = FALSE]
 
-create.heatmap(data = ihmp, sample_meta = sample_data, feature_meta = meta_data, show = TRUE)
+create.heatmap(data = p, sample_meta = sample_data, feature_meta = meta_data, show = TRUE, percentile = 0)
+
+one.v.all(
+  data = p, 
+  sample_meta = sample_data, 
+  feature_meta = meta_data, 
+  which = 2, 
+  column = 'Kingdom', 
+  trait = 'Chemical entities', 
+  percentile = 0, 
+  show = TRUE)
 
 create.correlogram(p, meta_data)
 

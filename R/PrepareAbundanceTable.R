@@ -1,5 +1,5 @@
 
-prepare.abundance.table <- function(file, tax = 's', tax_col = 1) {
+prepare.microbial.abundance <- function(file, tax = 's', tax_col = 1) {
   # available taxanomic information
   available_tax <- c('k', 'p', 'c', 'o', 'f', 'g', 's', 't')
   if (!(tax %in% available_tax))

@@ -1,6 +1,8 @@
 library(rjson)
 library(R.utils)
 library(crul)
+library(RCurl)
+library(jsonlite)
 
 # get JSON response from a given url
 GetJSONResponse <- function(usrname, pass, url) {
@@ -18,14 +20,14 @@ GetJSONResponse <- function(usrname, pass, url) {
 
 # given a cell entry, update it based on a new entry
 UpdateCell <- function(current_entry, new_entry) {
-  if (length(new_entry) > 0) {
+  if (length(new_entry) > 0 && !is.na(new_entry)) {
     # update if no previous entry
     if (length(current_entry) <= 0 || is.na(current_entry)) {
-      return(new_entry)
+      return(paste0(new_entry, collapse = '.'))
       
       # update if new entry is novel
     } else if (!grepl(new_entry, current_entry, fixed = TRUE)) {
-      return(paste(current_entry, new_entry, sep = ', '))
+      return(paste(current_entry, new_entry, sep = ', ', collapse = ", "))
       
       # do not update if new entry not novel
     } else {
@@ -51,7 +53,7 @@ GetMultiData <- function(current_entry, data, data_entry, checker) {
       current_sample[checker]  # determines whether pocesses trait
     
     # add trait if known or unknown to pocess
-    if (length(ability) > 0 &&
+    if (length(ability) > 0 && !is.na(ability) &&
         (ability == 'positive' ||
          ability == "+" || ability == 'TRUE') ||
         length(ability) <= 0) {
@@ -124,11 +126,12 @@ BacDiveCrawler <-
     url_page <-
       'https://bacdive.dsmz.de/api/bacdive/bacdive_id/'
     
-    page <- 1  # which microbe page currrently on
+    page <- 100000  # which microbe page currrently on
     
     message("Began BacDive")
     
     num_results <- 0  # how many species retrieved
+    num_no_find <- 0 # how many empty entries in a row
     
     while (num_results <= count) {
       url_list <- c()  # which urls to request
@@ -144,7 +147,7 @@ BacDiveCrawler <-
           message(paste("Gathered", num_results, "results"))  # prompt user about progress
           
           # save copy in case of crash
-          if (save_file & num_results %% 5000 < 100) {
+          if (save_file && num_results %% 5000 < 100 && num_results > 0) {
             table <-
               apply(table, 2, as.character)  # remove unwanted formating
             
@@ -168,10 +171,17 @@ BacDiveCrawler <-
       if (class(responses) != "try-error") {
         for (i in 1:length(responses)) {
           # get the data about the microbe
-          species_result <-
-            try(fromJSON(responses[[i]]$parse("UTF-8")))
           
-          if (class(species_result) != "try-error" &
+          species_result <- responses[[i]]
+          if (!is.atomic(species_result)) {
+            species_result <- responses[[i]]$parse("UTF-8")
+            if (is.character(species_result) &&
+                validate(species_result)) {
+              species_result <- fromJSON(species_result)
+            }
+          }
+          
+          if (is.list(species_result) &&
               is.null(species_result$detail))  {
             # create a row for the new microbe
             current_row <-
@@ -184,7 +194,7 @@ BacDiveCrawler <-
             
             # get taxonomy data
             taxonomy_data <-
-              species_result$taxonomy_name$strains[[1]]
+              species_result$taxonomy_name$strains
             current_row$Domain <-
               UpdateCell(NA, taxonomy_data$domain)
             current_row$Phylum <-
@@ -201,7 +211,7 @@ BacDiveCrawler <-
             morphology_data <- species_result$morphology_physiology
             
             # cell morphology
-            cell_data <- morphology_data$cell_morphology[[1]]
+            cell_data <- morphology_data$cell_morphology
             current_row$`Gram stain` <-
               UpdateCell(NA, cell_data$gram_stain)
             current_row$`Cell length` <-
@@ -216,7 +226,7 @@ BacDiveCrawler <-
               UpdateCell(NA, cell_data$flagellum_arrangement)
             
             # colony data
-            colony_data <- morphology_data$colony_morphology[[1]]
+            colony_data <- morphology_data$colony_morphology
             current_row$`Type of hemolysis` <-
               UpdateCell(NA, colony_data$hemolysis_type)
             current_row$`Hemolysis Ability` <-
@@ -232,31 +242,31 @@ BacDiveCrawler <-
             
             # mutlicellular data
             multicellular_data <-
-              morphology_data$multicellular_morphology[[1]]
+              morphology_data$multicellular_morphology
             current_row$`Multicellular complex forming ability` <-
               UpdateCell(NA, multicellular_data$ability)
             
             # spore data
-            spore_data <- morphology_data$spore_formation[[1]]
+            spore_data <- morphology_data$spore_formation
             current_row$`Type of spore` <-
               UpdateCell(NA, spore_data$type)
             current_row$`Ability of spore formation` <-
               UpdateCell(NA, spore_data$ability)
             
             # murein data
-            murein_data <- morphology_data$murein[[1]]
+            murein_data <- morphology_data$murein
             current_row$`Murein short key` <-
               UpdateCell(NA, murein_data$murein_short_index)
             current_row$`Murein types` <-
               UpdateCell(NA, murein_data$murein_types)
             
             # nutrition data
-            nutrition_data <- morphology_data$nutrition_type[[1]]
+            nutrition_data <- morphology_data$nutrition_type
             current_row$`Nutrition type` <-
               UpdateCell(NA, nutrition_data$nutrition_type)
             
             # oxygen tolerance data
-            oxygen_data <- morphology_data$oxygen_tolerance[[1]]
+            oxygen_data <- morphology_data$oxygen_tolerance
             current_row$`Oxygen tolerance` <-
               UpdateCell(NA, oxygen_data$oxygen_tol)
             
@@ -330,7 +340,7 @@ BacDiveCrawler <-
             
             # get pathogenic data
             pathogenic_data <-
-              species_result$application_interaction$risk_assessment[[1]]
+              species_result$application_interaction$risk_assessment
             current_row$`Pathogenic in humans` <-
               UpdateCell(NA, pathogenic_data$pathogenicity_human)
             current_row$`Pathogenic in animals` <-
@@ -340,8 +350,29 @@ BacDiveCrawler <-
             
             # update tabe with new row
             table <- rbind(table, current_row)
+            
+            num_no_find <- 0
+            
           } else {
             print("didnt find anything on current page")
+            
+            num_no_find <- num_no_find + 1
+            
+            if(num_no_find > 1000 && num_results > 100) {
+              print("Attempting to find correct entry")
+              
+              all_page <- as.integer(num_results / 100)
+              allbacdiveIDs <- 'https://bacdive.dsmz.de/api/bacdive/bacdive_id/?page='
+              url_allbacdiveIDs<- URLencode(paste0(allbacdiveIDs, all_page, '&format=json'))
+              
+              id_result <- GetJSONResponse(url = url_allbacdiveIDs, usrname = 'mbarbini@broadinstitute.org', pass = 'trellointeractions')
+              
+              result <- id_result$results$url[[(num_results %% 100) + 1]]
+            
+              page <- as.numeric(gsub("[^\\d]+", "", result, perl=TRUE))
+              num_no_find <- 0
+            }
+            
           }
         }
       } else {
