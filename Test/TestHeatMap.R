@@ -33,39 +33,57 @@ row.names(sample_data) <- samples
 
 
 ######################################################################
+# TESTING ON iHMP DATA
 # loading using load methods
 microbe_data <- load.meta.data('Data/HMP/mxp_microbiome_v2019-06-25.csv')
-sample_data <- load.meta.data('Data/HMP/SampleMetadata.csv')
-abundance_table <- load.abundance.data('Data/HMP/AbundanceTable.csv')
+microbe_data <- microbe_data[, c(7, 24, 25)] 
+metabolite_data <- load.meta.data('Data/IHMP/HMDB_2019-07-12.csv', tax_column = 6)
+metabolite_data <- metabolite_data[, c(91,92)]
+sample_data <- load.meta.data('Data/IHMP/hmp2_metadata.csv')
+microbe_abundance_table <- load.abundance.data('Data/iHMP/iHMP_AbundanceTable_2019-07-09.csv')
+microbe_abundance_table <- microbe_abundance_table[, -c(1)]
 
-# Create one v all heatmap
-a <- one.v.all(abundance_table, sample_data, microbe_data, 
-               percentile = 0.75, show = TRUE, 
-               which = 2, column = 'Oxygen.tolerance', trait = 'anaerobe')
+# read ihmp metabolite data
+ihmp <- read.csv(
+  
+  'Data/iHMP/iHMP_metabolomics_HILIC-neg_060517.csv',
+  
+  header = TRUE,
+  
+  fill = TRUE,
+  
+  comment.char = "" ,
+  
+  check.names = TRUE,
+  
+  stringsAsFactors = FALSE
+  
+)
 
-# Create heatmap
-h <- create.heatmap(abundance_table, sample_data, microbe_data[, c(24, 7, 25)], show = TRUE, omit_na = FALSE)
+ihmp_col_names <- ihmp[4,-c(1:7)]
 
-# create all heatmaps
-all.one.v.all(
-  abundance_table, 
-  sample_data, 
-  microbe_data, 
-  which=2, 
-  column = 'met_util', 
-  directory = 'Plots/')
+# filter out for only hmdb id
+ihmp  <- ihmp[(ihmp$X.5) != "",]
 
-# create correogram 
-c <- create.correlogram(abundance_table, microbe_data[, c(24, 7, 25)], show = TRUE)
+# get column_names
+ihmp_row_names <- ihmp[-1,6]
 
-# create pcoa plot
-# pcoa_plot <- 
-#   pcoa.plot(
-#     data = as.data.frame(abundance_table), 
-#     factors = c('Oxygen.tolerance'),
-#     stand.method = 'chi.square', 
-#     meta = microbe_data[, 24, drop = FALSE])
+ihmp <- ihmp[-1,-c(1:7)]
 
+ihmp <- apply(as.matrix(ihmp), 2, as.numeric)
 
-abundance_dist <- vegdist(na.omit(abundance_table))
-pcoa_plot <- pcoa(abundance_dist)
+# clean up ihmp data
+colnames(ihmp) <- ihmp_col_names
+rownames(ihmp) <- ihmp_row_names
+
+# ajoined correlogram
+a_table <- multi.correlogram(data_tables = list(ihmp, microbe_abundance_table), 
+                             sample_datas = list(metabolite_data, microbe_data))
+
+plot(a_table[[1]]$gtable)
+plot(a_table[[2]]$gtable)
+plot(a_table[[3]]$gtable)
+plot(a_table[[4]]$gtable)
+
+ihmp_map <- create.correlogram(ihmp, feature_meta = metabolite_data, omit = FALSE)
+microbe_map <- create.correlogram(microbe_abundance_table, feature_meta = microbe_data, omit = FALSE)
