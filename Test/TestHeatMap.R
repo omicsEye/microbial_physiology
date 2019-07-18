@@ -1,52 +1,77 @@
+setwd("~/Documents/R_WorkSpace/m2interact")
+
 source('R/HeatMap.R')
 library(RAM)
 
-### FOR TESTING 
-# load metadata
-microbe_data <- read.delim(file.choose(), fill=NA, stringsAsFactors = FALSE, sep=',')
-microbe_data <- microbe_data[!duplicated(microbe_data[,1]),]
-row.names(microbe_data) <- microbe_data[,1]
-species <- row.names(microbe_data)
-microbe_data <- microbe_data[,-1]
-# microbe_data <- microbe_data[, c(24, 25)]  # select certain traits
-# microbe_data <- na.omit(microbe_data)
-
-
-sample_data <- read.delim(file.choose(), sep = ",")
-sample_data <- sample_data[!duplicated(sample_data[,1]),]
-row.names(sample_data) <- sample_data[,1]
-sample_data <- sample_data[,-c(1,3)]
-# metabolite_data <- metabolite_data[,8:ncol(metabolite_data)]
-# metabolite_data <- na.omit(metabolite_data)
-
-
-abundance_table <- read.delim(file.choose(), sep = ",", row.names = 1)
-species <- row.names(abundance_table)
-abundance_table <- apply(abundance_table, 2, as.numeric)
-row.names(abundance_table) <- species
-samples <- colnames(abundance_table)
-row.names(sample_data) <- samples
-
-# data <- abundance_table
-# row_meta <- microbe_data
-# column_meta <- metabolite_data
-
-
-######################################################################
 # TESTING ON iHMP DATA
 # loading using load methods
 microbe_data <- load.meta.data('Data/HMP/mxp_microbiome_v2019-06-25.csv')
-microbe_data <- microbe_data[, c(7, 24, 25)] 
+# microbe_data <- microbe_data[, c(7, 24, 25)] 
 metabolite_data <- load.meta.data('Data/IHMP/HMDB_2019-07-12.csv', tax_column = 6)
-metabolite_data <- metabolite_data[, c(91,92)]
-sample_data <- load.meta.data('Data/IHMP/hmp2_metadata.csv')
-microbe_abundance_table <- load.abundance.data('Data/iHMP/iHMP_AbundanceTable_2019-07-09.csv')
+metabolite_data <- metabolite_data[, c(11, 12, 20:25, 92:95)]
+sample_data <- load.meta.data('Data/IHMP/hmp2_metadata.csv', tax_column = 1)
+microbe_sample_data <- load.meta.data('Data/IHMP/hmp2_metadata.csv', tax_column = 2)
+microbe_sample_data <- microbe_sample_data[, c(75, 34, 40)]
+microbe_abundance_table <- load.abundance.data('Data/iHMP/taxonomic_profiles.tsv_AbundanceTable_2019-07-09.csv')
 microbe_abundance_table <- microbe_abundance_table[, -c(1)]
 
 # read ihmp metabolite data
+# iHMP_metabolomics_HILIC-neg_060517
 ihmp <- read.csv(
   
   'Data/iHMP/iHMP_metabolomics_HILIC-neg_060517.csv',
+  
+  header = TRUE,
+  
+  fill = TRUE,
+  
+  comment.char = "" ,
+  
+  check.names = TRUE,
+  
+  stringsAsFactors = FALSE
+  
+)
+
+# iHMP_metabolomics_HILIC-pos_060517
+ihmp <- read.csv(
+  
+  'Data/iHMP/iHMP_metabolomics_HILIC-pos_060517.csv',
+  
+  header = TRUE,
+  
+  fill = TRUE,
+  
+  comment.char = "" ,
+  
+  check.names = TRUE,
+  
+  stringsAsFactors = FALSE
+  
+)
+
+# read ihmp metabolite data
+# iHMP_metabolomics_C8-pos_060517
+ihmp <- read.csv(
+  
+  'Data/iHMP/iHMP_metabolomics_C8-pos_060517.csv',
+  
+  header = TRUE,
+  
+  fill = TRUE,
+  
+  comment.char = "" ,
+  
+  check.names = TRUE,
+  
+  stringsAsFactors = FALSE
+  
+)
+
+# iHMP_metabolomics_C18-neg_060517
+ihmp <- read.csv(
+  
+  'Data/iHMP/iHMP_metabolomics_C18-neg_060517.csv',
   
   header = TRUE,
   
@@ -85,5 +110,62 @@ plot(a_table[[2]]$gtable)
 plot(a_table[[3]]$gtable)
 plot(a_table[[4]]$gtable)
 
-ihmp_map <- create.correlogram(ihmp, feature_meta = metabolite_data, omit = FALSE)
-microbe_map <- create.correlogram(microbe_abundance_table, feature_meta = microbe_data, omit = FALSE)
+ggsave(
+  'microbeXmetaboliteExtra2.png',
+  plot = a_table[[2]],
+  width = 5,
+  height = 4,
+  units = "in",
+  dpi = 300
+)
+
+ihmp_map <-
+  create.heatmap(
+    ihmp,
+    sample_meta = sample_data,
+    feature_meta = metabolite_data,
+    omit = FALSE,
+    percentile = 0
+  )
+ihmp_corr <-
+  create.correlogram(
+    ihmp,
+    feature_meta = metabolite_data,
+    sample_meta = sample_meta,
+    show = TRUE,
+    omit = FALSE
+  )
+all.heatmap(
+  ihmp,
+  sample_meta = sample_data,
+  feature_meta = metabolite_data,
+  omit_na = TRUE,
+  percentile = 0,
+  show = FALSE
+)
+
+##########
+
+microbe_map <-
+  create.heatmap(
+    microbe_abundance_table,
+    sample_meta = microbe_sample_data,
+    feature_meta = microbe_data,
+    omit = FALSE,
+    percentile = 0,
+    show = TRUE
+  )
+
+microbe_corr <-
+  create.correlogram(microbe_abundance_table,
+                     feature_meta = microbe_data,
+                     omit = FALSE)
+all.heatmap(
+  microbe_abundance_table,
+  sample_meta = microbe_sample_data,
+  feature_meta = microbe_data,
+  omit_na = TRUE,
+  percentile = 0,
+  show = FALSE
+)
+
