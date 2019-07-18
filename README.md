@@ -6,7 +6,26 @@ For a more indepth look at each function, refer to the [wiki](https://github.com
 
 ### Sourcing Microbial Data 
 This script can be run using the provided Jupyter Notebook. Aside from the listed requirements, using BacDive requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
-Parameters can be supplied to each function, as well.
+Parameters can be supplied to each function, as well.  
+
+To run it manually, execute: 
+```R
+source('CleanProTrait.R')
+source('BacDiveAPICrawler.R')
+source('CombineData.R')
+
+protrait_table <- CleanProTrait()
+bacdive_table <- BacDiveCrawler(usrname = <USERNAME>, pass = <PASSWORD>)
+combine_table <- CombineData(protrait_table, bacdive_table)
+```
+
+### Sourcing Metabolite Data
+To parse the hmdb database, run:
+```R
+parse.hmdb()
+```
+A file can be supplied which represents the name of the metabolite datatable file to parse (does not need to be provided if a local copy of the hmdb metabolite file does not exist). By default, it is *hmdb_metabolites.xml*.
+A link can be supplied which represents the URL download link for the metabolite datatable. By default, it is *http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip*
 
 ### Creating Heatmaps
 First, run, `source('R/HeatMap.R')`
