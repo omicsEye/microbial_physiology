@@ -1,14 +1,12 @@
 # m2interact
 **m2interact** is a physiology trait collection and data representation tool. It can be used to parse microbial and metabolite physiology data from online sources and construct a single data table for each. This datatable, combined with sample omics data (ie. microbial abundance tables & metabolite intensity values) can be represented using different visualization methods. 
 
-### Dependencies
-Jupyter, RCurl, rjson, IRKernal, pheatmap, ggplot2, RColorBrewer
-
-## Instructions
+## Instructions  
+For a more indepth look at each function, refer to the [wiki](https://github.com/broadinstitute/m2interact/wiki)
 
 ### Sourcing Microbial Data 
 This script can be run using the provided Jupyter Notebook. Aside from the listed requirements, using BacDive requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
-Parameters can be supplied to each function, as well. Their options are listed with the function description found in the [wiki](https://github.com/broadinstitute/m2interact/wiki/Finding-Metadata-for-Microbial-Physiology-Traits/) 
+Parameters can be supplied to each function, as well.
 
 ### Creating Heatmaps
 First, run, `source('R/HeatMap.R')`
