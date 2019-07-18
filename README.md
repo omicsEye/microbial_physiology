@@ -1,5 +1,5 @@
 # m2interact
-Extracts microbial physiological traits from online sources, merging them into a single, formated table
+**m2interact** is a physiology trait collection and data representation tool. It can be used to parse microbial and metabolite physiology data from online sources and construct a single data table for each. This datatable, combined with sample omics data (ie. microbial abundance tables & metabolite intensity values) can be represented using different visualization methods. 
 
 ### Dependencies
 Jupyter, RCurl, rjson, IRKernal, pheatmap, ggplot2, RColorBrewer
