@@ -3,7 +3,7 @@ AddToCell <- function(cell, new_entry) {
   # if no previous entry
   if (cell == "" | is.na(cell)) {
     return(new_entry)
-    # known to not have duplicates
+    # data set known to not have duplicates
   } else {
     return(paste(cell, new_entry, sep = ", "))
   }

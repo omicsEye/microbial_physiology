@@ -21,16 +21,25 @@ GetJSONResponse <- function(usrname, pass, url) {
 # given a cell entry, update it based on a new entry
 UpdateCell <- function(current_entry, new_entry) {
   if (length(new_entry) > 0 && !is.na(new_entry)) {
-    # update if no previous entry
-    if (length(current_entry) <= 0 || is.na(current_entry)) {
-      return(paste0(new_entry, collapse = '.'))
+    if (length(new_entry) == 1) {
+      # update if no previous entry
+      if (length(current_entry) <= 0 || is.na(current_entry)) {
+        return(paste0(new_entry, collapse = '.'))
+        
+        # update if new entry is novel
+      } else if (!grepl(new_entry, current_entry, fixed = TRUE)) {
+        return(paste(current_entry, new_entry, sep = ', ', collapse = ", "))
+        
+        # do not update if new entry not novel
+      } else {
+        return(current_entry)
+      }
       
-      # update if new entry is novel
-    } else if (!grepl(new_entry, current_entry, fixed = TRUE)) {
-      return(paste(current_entry, new_entry, sep = ', ', collapse = ", "))
-      
-      # do not update if new entry not novel
-    } else {
+      # split if mutliple items in entry
+    } else if (length(new_entry) >= 1) {
+      for(i in new_entry) {
+        current_entry <- UpdateCell(current_entry, i)
+      }
       return(current_entry)
     }
     
@@ -46,19 +55,21 @@ UpdateCell <- function(current_entry, new_entry) {
 
 # update a cell given data that is expected to have multiple entries
 GetMultiData <- function(current_entry, data, data_entry, checker) {
-  # parse through all entries
-  for (j in 1:length(data)) {
-    current_sample <- data[[j]]
-    ability <-
-      current_sample[checker]  # determines whether pocesses trait
-    
-    # add trait if known or unknown to pocess
-    if (length(ability) > 0 && !is.na(ability) &&
-        (ability == 'positive' ||
-         ability == "+" || ability == 'TRUE') ||
-        length(ability) <= 0) {
-      new_entry <- current_sample[data_entry]
-      current_entry <- UpdateCell(current_entry, new_entry)
+  if(is.data.frame(data)) {
+    # parse through all entries
+    for (j in 1:nrow(data)) {
+      current_sample <- data[j, , drop = FALSE]
+      ability <-
+        current_sample[checker]  # determines whether pocesses trait
+      
+      # add trait if known or unknown to pocess
+      if (length(ability) > 0 && !is.na(ability) &&
+          (ability == 'positive' ||
+           ability == "+" || ability == 'TRUE') ||
+          length(ability) <= 0) {
+        new_entry <- current_sample[data_entry]
+        current_entry <- UpdateCell(current_entry, new_entry)
+      }
     }
   }
   return(current_entry)
@@ -99,10 +110,11 @@ BacDiveCrawler <-
         "Murein types",
         "Oxygen tolerance",
         "Nutrition type",
-        "met_antibiotica",
+        "Antibiotic Resistance",
+        "Antibiotic Sensitivity",
         "halophily",
-        "met_util",
-        "met_production",
+        "Metabolite Utilization",
+        "Metabolite Production",
         "enzymes",
         "Temperature range",
         "pH",
@@ -126,14 +138,15 @@ BacDiveCrawler <-
     url_page <-
       'https://bacdive.dsmz.de/api/bacdive/bacdive_id/'
     
-    page <- 100000  # which microbe page currrently on
+    page <- 1  # which microbe page currrently on
     
     message("Began BacDive")
     
     num_results <- 0  # how many species retrieved
     num_no_find <- 0 # how many empty entries in a row
     
-    while (num_results <= count) {
+    # while (num_results <= count) {
+    while (num_results <= 100) {
       url_list <- c()  # which urls to request
       
       for (i in 1:num_requests) {
@@ -272,15 +285,15 @@ BacDiveCrawler <-
             
             # compound production data
             compound_data <- morphology_data$compound_production
-            current_row$met_production <-
-              GetMultiData(current_row$met_production,
+            current_row$`Metabolite Production` <-
+              GetMultiData(current_row$`Metabolite Production`,
                            compound_data,
                            'compound_name',
                            NULL)
             compound_data <- morphology_data$met_production
-            current_row$met_production <-
+            current_row$`Metabolite Production` <-
               GetMultiData(
-                current_row$met_production,
+                current_row$`Metabolite Production`,
                 compound_data,
                 'metabolite_prod',
                 'production'
@@ -288,20 +301,29 @@ BacDiveCrawler <-
             
             # metabolite utilization data
             compound_data <- morphology_data$met_util
-            current_row$met_util <-
-              GetMultiData(current_row$met_util,
+            current_row$`Metabolite Utilization` <-
+              GetMultiData(current_row$`Metabolite Utilization`,
                            compound_data,
                            'metabolite_util',
                            'ability')
             
             # antiobiotic resistance data
             anti_data <- morphology_data$met_antibiotica
-            current_row$met_antibiotica <-
+            current_row$`Antibiotic Resistance` <-
               GetMultiData(
-                current_row$met_antibiotica,
+                current_row$`Antibiotic Resistance`,
                 anti_data,
                 'metabolite_antib',
                 'ab_resistant'
+              )
+            
+            # antibiotic sensitivity data
+            current_row$`Antibiotic Sensitivity` <-
+              GetMultiData(
+                current_row$`Antibiotic Sensitivity`,
+                anti_data,
+                'metabolite_antib',
+                'ab_sensitive'
               )
             
             
@@ -348,7 +370,7 @@ BacDiveCrawler <-
             current_row$`Pathogenic in plants` <-
               UpdateCell(NA, pathogenic_data$pathogenicity_plant)
             
-            # update tabe with new row
+            # update table with new row
             table <- rbind(table, current_row)
             
             num_no_find <- 0
