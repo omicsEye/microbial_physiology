@@ -28,7 +28,12 @@ UpdateCell <- function(current_entry, new_entry) {
         
         # update if new entry is novel
       } else if (!grepl(new_entry, current_entry, fixed = TRUE)) {
-        return(paste(current_entry, new_entry, sep = ', ', collapse = ", "))
+        return(paste(
+          current_entry,
+          new_entry,
+          sep = ', ',
+          collapse = ", "
+        ))
         
         # do not update if new entry not novel
       } else {
@@ -37,7 +42,7 @@ UpdateCell <- function(current_entry, new_entry) {
       
       # split if mutliple items in entry
     } else if (length(new_entry) >= 1) {
-      for(i in new_entry) {
+      for (i in new_entry) {
         current_entry <- UpdateCell(current_entry, i)
       }
       return(current_entry)
@@ -55,7 +60,7 @@ UpdateCell <- function(current_entry, new_entry) {
 
 # update a cell given data that is expected to have multiple entries
 GetMultiData <- function(current_entry, data, data_entry, checker) {
-  if(is.data.frame(data)) {
+  if (is.data.frame(data)) {
     # parse through all entries
     for (j in 1:nrow(data)) {
       current_sample <- data[j, , drop = FALSE]
@@ -145,8 +150,7 @@ BacDiveCrawler <-
     num_results <- 0  # how many species retrieved
     num_no_find <- 0 # how many empty entries in a row
     
-    # while (num_results <= count) {
-    while (num_results <= 100) {
+    while (num_results <= count) {
       url_list <- c()  # which urls to request
       
       for (i in 1:num_requests) {
@@ -160,7 +164,8 @@ BacDiveCrawler <-
           message(paste("Gathered", num_results, "results"))  # prompt user about progress
           
           # save copy in case of crash
-          if (save_file && num_results %% 5000 < 100 && num_results > 0) {
+          if (save_file &&
+              num_results %% 5000 < 100 && num_results > 0) {
             table <-
               apply(table, 2, as.character)  # remove unwanted formating
             
@@ -286,10 +291,12 @@ BacDiveCrawler <-
             # compound production data
             compound_data <- morphology_data$compound_production
             current_row$`Metabolite Production` <-
-              GetMultiData(current_row$`Metabolite Production`,
-                           compound_data,
-                           'compound_name',
-                           NULL)
+              GetMultiData(
+                current_row$`Metabolite Production`,
+                compound_data,
+                'compound_name',
+                NULL
+              )
             compound_data <- morphology_data$met_production
             current_row$`Metabolite Production` <-
               GetMultiData(
@@ -302,10 +309,12 @@ BacDiveCrawler <-
             # metabolite utilization data
             compound_data <- morphology_data$met_util
             current_row$`Metabolite Utilization` <-
-              GetMultiData(current_row$`Metabolite Utilization`,
-                           compound_data,
-                           'metabolite_util',
-                           'ability')
+              GetMultiData(
+                current_row$`Metabolite Utilization`,
+                compound_data,
+                'metabolite_util',
+                'ability'
+              )
             
             # antiobiotic resistance data
             anti_data <- morphology_data$met_antibiotica
@@ -380,18 +389,25 @@ BacDiveCrawler <-
             
             num_no_find <- num_no_find + 1
             
-            if(num_no_find > 1000 && num_results > 100) {
+            if (num_no_find > 1000 && num_results > 100) {
               print("Attempting to find correct entry")
               
               all_page <- as.integer(num_results / 100)
-              allbacdiveIDs <- 'https://bacdive.dsmz.de/api/bacdive/bacdive_id/?page='
-              url_allbacdiveIDs<- URLencode(paste0(allbacdiveIDs, all_page, '&format=json'))
+              allbacdiveIDs <-
+                'https://bacdive.dsmz.de/api/bacdive/bacdive_id/?page='
+              url_allbacdiveIDs <-
+                URLencode(paste0(allbacdiveIDs, all_page, '&format=json'))
               
-              id_result <- GetJSONResponse(url = url_allbacdiveIDs, usrname = 'mbarbini@broadinstitute.org', pass = 'trellointeractions')
+              id_result <-
+                GetJSONResponse(url = url_allbacdiveIDs,
+                                usrname = 'mbarbini@broadinstitute.org',
+                                pass = 'trellointeractions')
               
-              result <- id_result$results$url[[(num_results %% 100) + 1]]
+              result <-
+                id_result$results$url[[(num_results %% 100) + 1]]
               
-              page <- as.numeric(gsub("[^\\d]+", "", result, perl=TRUE))
+              page <-
+                as.numeric(gsub("[^\\d]+", "", result, perl = TRUE))
               num_no_find <- 0
             }
             

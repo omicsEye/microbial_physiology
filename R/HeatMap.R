@@ -77,7 +77,9 @@ create.correlogram <- function(data, feature_meta, show = TRUE, omit = TRUE) {
       annotation_col = feature_meta,
       cellwidth = 2,
       cellheight = 1,
-      scale = "none"
+      scale = "none",
+      silent = !show,
+      legend = FALSE
     )
   )
 }
@@ -251,7 +253,7 @@ all.heatmap <- function(data, sample_meta, feature_meta, percentile = 0.75, show
                             show = show, 
                             omit_na = omit_na),
       width = 5,
-      height = 4,
+      height = 6,
       units = 'in',
       dpi = 300
     )

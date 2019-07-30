@@ -46,7 +46,7 @@ dict_key <- c(
 # values are for BacDive table
 dict_value <- c(
   "Species",
-  "met_util",
+  "Metabolite Utilization",
   "enzymes",
   "pH",
   "Gram stain",
@@ -117,10 +117,11 @@ bacdive_names <- c(
   "Murein types",
   "Oxygen tolerance",
   "Nutrition type",
-  "met_antibiotica",
+  "Antibiotic Sensitivity",
+  "Antibiotic Resistance",
   "halophily",
-  "met_util",
-  "met_production",
+  "Metabolite Utilization",
+  "Metabolite Production",
   "enzymes",
   "Temperature range",
   "pH",

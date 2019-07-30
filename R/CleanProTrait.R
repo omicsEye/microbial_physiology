@@ -75,7 +75,7 @@ CleanProTrait <- function(save_file = TRUE) {
   message("Began ProTrait extraction")
   while (current_line <= num_rows) {
     # extract data one microbe at a time
-    current_row <- raw_table[current_line, ]
+    current_row <- raw_table[current_line,]
     
     # prompt user about progress
     if (current_line %% 500 == 0) {
@@ -94,7 +94,8 @@ CleanProTrait <- function(save_file = TRUE) {
       current_name <- names(current_cell)
       
       # get gram stain - unique because 0 represents gram negative rather than lack of phenotype
-      if (grepl("gram_stain", current_name) & !is.na(current_cell)) {
+      if (grepl("gram_stain", current_name) &
+          !is.na(current_cell)) {
         if (current_cell == 1) {
           refined_table[current_line, "gram stain"] <-
             "positive"
@@ -263,3 +264,5 @@ CleanProTrait <- function(save_file = TRUE) {
   message("Completed pro trait data grab")
   return(refined_table)
 }
+
+protrait <- CleanProTrait(save_file = FALSE)
