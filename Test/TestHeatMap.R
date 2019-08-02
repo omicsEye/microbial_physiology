@@ -6,10 +6,10 @@ library(recommenderlab)
 
 # TESTING ON iHMP DATA
 # loading using load methods
-microbe_data <- load.meta.data('Data/HMP/mxp_microbiome_v2019-06-25.csv')
-microbe_data <- microbe_data[, c(7, 24)] 
-metabolite_data <- load.meta.data('Data/IHMP/HMDB_2019-07-12.csv', tax_column = 6)
-metabolite_data <- metabolite_data[, c(11, 12, 20:25, 92:95)]
+microbe_data <- load.meta.data('Data/HMP/Final_v2019-07-30.csv')
+microbe_data <- microbe_data[, c(7, 24, 25)] 
+metabolite_data <- load.meta.data('Data/IHMP/HMDB_2019-07-30.csv', tax_column = 1)
+metabolite_data <- metabolite_data[, c(11, 20:25, 91:97)]
 sample_data <- load.meta.data('Data/IHMP/hmp2_metadata.csv', tax_column = 4)
 sample_data <- sample_data[, 70, drop = FALSE]
 microbe_sample_data <- load.meta.data('Data/IHMP/hmp2_metadata.csv', tax_column = 2)
@@ -192,21 +192,44 @@ all.heatmap(
 
 
 
+m <- apply(microbe_data, c(1, 2), order.string)
+m <- as.data.frame(m, stringsAsFactors = FALSE)
 
 microbe_map <-
   create.heatmap(
-    microbe_abundance_table,
+    only_cd_abundance,
     sample_meta = microbe_sample_data,
-    feature_meta = microbe_data,
+    feature_meta = m,
     omit = FALSE,
-    percentile = 0.9,
-    show = TRUE
+    percentile = 0,
+    show = TRUE,
+    cluster_distance_method = "euclidean"
   )
+
+ggsave(
+  'microbe_heatmap.png',
+  plot = microbe_map,
+  width = 5,
+  height = 5,
+  units = "in",
+  dpi = 300
+)
 
 microbe_corr <-
   create.correlogram(microbe_abundance_table,
                      feature_meta = microbe_data,
-                     omit = FALSE)
+                     omit = FALSE,
+                     cluster_distance_method = "euclidian")
+
+ggsave(
+  'microbe_correlogram.png',
+  plot = microbe_corr,
+  width = 30,
+  height = 35,
+  units = "in",
+  dpi = 300
+)
+
 all.heatmap(
   microbe_abundance_table,
   sample_meta = microbe_sample_data,
@@ -214,5 +237,14 @@ all.heatmap(
   omit_na = TRUE,
   percentile = 0,
   show = FALSE
+)
+
+all.one.v.all(
+  microbe_abundance_table,
+  sample_meta = microbe_sample_data,
+  feature_meta = m,
+  column = 'diagnosis',
+  percentile = 0.75,
+  which = 1
 )
 

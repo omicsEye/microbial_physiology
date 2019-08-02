@@ -56,7 +56,7 @@ parse.hmdb <-
     
     # return number of times that pattern appears
     occurrence.symbol <- function(x, pattern) {
-      return(sum(grepl(pattern, unlist(
+      return(sum(grepl(paste0('\\', pattern), unlist(
         strsplit(x, split = NULL)
       ))))
     }
@@ -64,14 +64,15 @@ parse.hmdb <-
     # determine traits about molecular structure
     # returns a list with the respective data
     get.molecular <- function(SMILES) {
-      molecular_data <- as.list(matrix(nrow = 1, ncol = 6))
+      molecular_data <- as.list(matrix(nrow = 1, ncol = 7))
       names(molecular_data) <- c(
         'number of carbons',
         'double bonds',
         'triple bonds',
         'quadruple bonds',
         'positive charge',
-        'negative charge'
+        'negative charge',
+        'ring(s)'
       )
       molecular_data['number of carbons'] <-
         occurrence.symbol(SMILES, 'C')
@@ -85,6 +86,8 @@ parse.hmdb <-
         occurrence.symbol(SMILES, '+')
       molecular_data['negative charge'] <-
         occurrence.symbol(SMILES, '-')
+      molecular_data['ring(s)'] <-
+        (occurrence.symbol(SMILES, 'd') > 0)
       
       return(molecular_data)
     }

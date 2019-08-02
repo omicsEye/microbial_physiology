@@ -114,11 +114,11 @@ create.correlogram(p, meta_data)
 # )
 # 
 data <- massPattern::load_data(
-
+  
   input = file.choose(),
-
+  
   type = 'all'
-
+  
 )
 
 abundance_data <- data$data
@@ -154,3 +154,9 @@ ord_plots <- ordplots(abundance_data, sample_info, output = 'Plots/', outputname
 # 
 # rownames(metabolite_data) <- metabolite_data$Name
 # metabolite_data <- metabolite_data[order(rownames(metabolite_data)),]
+
+total <- list()
+for(i in 1:length(metabolite_data$.smiles)) {
+  total <- rbindlist(list(total, 
+                          get.molecular(metabolite_data$.smiles[i])))
+}
