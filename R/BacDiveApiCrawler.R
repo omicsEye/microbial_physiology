@@ -150,7 +150,8 @@ BacDiveCrawler <-
     num_results <- 0  # how many species retrieved
     num_no_find <- 0 # how many empty entries in a row
     
-    while (num_results <= count) {
+    while(num_results <= 100) {
+    # while (num_results <= count) {
       url_list <- c()  # which urls to request
       
       for (i in 1:num_requests) {
