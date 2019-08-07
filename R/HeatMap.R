@@ -19,7 +19,7 @@ save.figure <- function(figure, file_location = '') {
   )
 }
 
-# a for microbes, b for metabolites
+# a for row, b for column
 create.unique.color <- function(a, b) {
   color <-
     grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
@@ -32,14 +32,14 @@ create.unique.color <- function(a, b) {
   
   newColsMeta <-
     lapply(b, function(x)
-      color[seq(8, length(color), length(color) / length(unique(x)))])
+      color[seq(18, length(color), floor(length(color) / length(na.omit(unique(x)))))])
   for (i in 1:length(newColsMeta)) {
-    names(newColsMeta[[i]]) <- unique(b[, i])
+    names(newColsMeta[[i]]) <- unique(na.omit(b[, i]))
   }
   
   newColsMicrobe <-
     lapply(a, function(x)
-      color[seq(8, length(color), floor(length(color) / length(na.omit(unique(x)))))])
+      color[seq(18, length(color), floor(length(color) / length(na.omit(unique(x)))))])
   for (i in 1:length(newColsMicrobe)) {
     names(newColsMicrobe[[i]]) <- unique(na.omit(a[, i]))
   }
@@ -87,6 +87,7 @@ create.correlogram <-
         cluster_rows = TRUE,
         annotation_row = feature_meta,
         annotation_col = feature_meta,
+        annotation_colors = create.unique.color(feature_meta, feature_meta),
         cellwidth = 2,
         cellheight = 1,
         scale = "none",
@@ -211,7 +212,9 @@ create.heatmap <-
         data[apply(data, 1, var) >= quantile(apply(data, 1, var), percentile),]
     }
     
-    data <- sqrt(data)
+    # data[data > 0] <- sqrt(data[data > 0])
+    # data[data < 0] <- sqrt(abs(data[data < 0])) * -1
+    data <- data / max(data)
     
     breaksList = seq(min(data) - min(data) / 500,
                      max(data) + max(data) / 500,

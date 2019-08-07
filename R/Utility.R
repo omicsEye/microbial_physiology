@@ -1,4 +1,6 @@
 library(foreach)
+library(RAM)
+library(recommenderlab)
 
 # Remove all entries that do not appear enough
 clear.small.entry <- function(table, percentage) {
@@ -59,4 +61,44 @@ load.meta.data <- function(path, tax_column = 1) {
   row.names(data) <- data[, tax_column]
   data <- data[,-c(tax_column)]
   return(data)
+}
+
+# load and prepare ihmp metabolite intensity value table from .csv
+# returns a data frame
+load.ihmp <- function(file) {
+  ihmp <- read.csv(
+    file,
+    header = TRUE,
+    fill = TRUE,
+    comment.char = "" ,
+    check.names = TRUE,
+    stringsAsFactors = FALSE
+  )
+  ihmp_col_names <- ihmp[4,-c(1:7)]
+  
+  # filter out for only hmdb id
+  ihmp  <- ihmp[(ihmp$X.5) != "",]
+  
+  # get column_names
+  ihmp_row_names <- ihmp[-1,6]
+  
+  ihmp <- ihmp[-1,-c(1:7)]
+  
+  ihmp <- apply(as.matrix(ihmp), 2, as.numeric)
+  
+  # clean up ihmp data
+  colnames(ihmp) <- ihmp_col_names
+  rownames(ihmp) <- ihmp_row_names
+  ihmp[is.na(ihmp)] <- 0
+  return(ihmp)
+}
+
+# normalize ihmp metabolite intensity values using z-score normalization
+normalize.ihmp <- function(ihmp) {
+  ihmp[is.na(ihmp)] <- 0
+  ihmp <- as(ihmp, "realRatingMatrix")
+  ihmp <- normalize(ihmp, method="Z-score", row=TRUE)
+  ihmp <- as.matrix(ihmp@data)
+  ihmp[is.na(ihmp)] <- 0
+  return(ihmp)
 }

@@ -3,6 +3,7 @@ setwd("~/Documents/R_WorkSpace/m2interact")
 source('R/HeatMap.R')
 library(RAM)
 library(recommenderlab)
+source('R/Utility.R')
 
 # TESTING ON iHMP DATA
 # loading using load methods

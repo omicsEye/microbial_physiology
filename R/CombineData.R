@@ -314,11 +314,7 @@ CombineData <- function(protrait, bacdive, save_file = TRUE) {
     # move on to next microbe
     row_count <- row_count + 1
   }
-  if (save_file) {
-    write.csv(ctable,
-              paste0("mxp_microbiome_v", Sys.Date(), ".csv"),
-              row.names = FALSE)
-  }
+  
   message("Completed table merge")
   
   ctable <- clean.repeat(ctable)
@@ -330,6 +326,12 @@ CombineData <- function(protrait, bacdive, save_file = TRUE) {
   ctable <- apply(ctable, c(1, 2), order.string)
   ctable <- as.data.frame(ctable, stringsAsFactors = FALSE, check.names = FALSE)
   message("Sorted entries by alphabetical order")
+  
+  if (save_file) {
+    write.csv(ctable,
+              paste0("mxp_microbiome_v", Sys.Date(), ".csv"),
+              row.names = FALSE)
+  }
   
   return(ctable)
 }
