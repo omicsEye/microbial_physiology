@@ -67,12 +67,19 @@ get.microbe.data <- function(response) {
 bacmap.crawler <- function(url = "http://bacmap.wishartlab.com/", num_requests = 10) {
   microbe_urls <- get.microbe.urls()
   num_microbes <- length(microbe_urls)
+  print(paste0('got ', num_microbes, ' urls'))
   current_page <- 1
   url <- url  # base url
   
   bacmap_table <- list()
   
   while (current_page <= num_microbes) {
+    
+    if (current_page > 50 && current_page %% 100 < 10) {
+      num_results <- nrow(bacmap_table)
+      message(paste("Gathered", num_results, "results"))  # prompt user about progress
+    }
+    
     # add urls to buffer
     url_buffer <- c()
     for (i in 1:num_requests) {
@@ -105,6 +112,13 @@ bacmap.crawler <- function(url = "http://bacmap.wishartlab.com/", num_requests =
       }
     }
   }
+  
+  bacmap_table <-
+    apply(bacmap_table, 2, as.character)  # remove unwanted formating
+  
+  write.csv(bacmap_table,
+            paste0("BacMap_v", Sys.Date(), ".csv"),
+            row.names = FALSE)
   
   return(bacmap_table)
 }

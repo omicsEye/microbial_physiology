@@ -2,8 +2,8 @@ source('R/HeatMap.R')
 source('R/Utility.R')
 
 # Microbe meta data
-microbe_meta_data <- load.meta.data('Data/Other/mxp_microbiome_v2019-08-05.csv')
-microbe_meta_data <- microbe_meta_data[, c(7, 24, 25)]
+microbe_meta_data <- load.meta.data('mxp_microbiome_v2019-08-08.csv')
+microbe_meta_data <- microbe_meta_data[, c(7, 9, 16)]
 microbe_meta_data <- clear.small.entry(microbe_meta_data, 0.05)
 
 ############################################################################

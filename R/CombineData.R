@@ -29,7 +29,7 @@ UpdateEntry <- function(old_entry, entry) {
 }
 
 order.string <- function(string) {
-  return(paste(sort(unique(trimws(as.vector(strsplit(string, ",")[[1]])))), collapse = ','))
+  return(paste(sort(unique(trimws(as.vector(strsplit(string, ",", useBytes = TRUE)[[1]])))), collapse = ','))
 }
 
 clean.repeat <- function(table) {
