@@ -5,18 +5,36 @@
 For a more indepth look at each function, refer to the [wiki](https://github.com/broadinstitute/m2interact/wiki)
 
 ### Sourcing Microbial Data 
-This script can be run using the provided Jupyter Notebook. Aside from the listed requirements, using BacDive requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
+Aside from the listed requirements, using BacDive requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
 Parameters can be supplied to each function, as well.  
 
-To run it manually, execute: 
+To run it manually, execute: (This is also found in the R/CreateDataTable.R file)
 ```R
-source('CleanProTrait.R')
-source('BacDiveAPICrawler.R')
-source('CombineData.R')
+source('R/CleanProTrait.R')
+source('R/ParseIJSEM.R')
+source('R/BacMapCrawler.R')
+source('R/BacDiveApiCrawler.R')
+source('R/ParseHMDB.R')
+source('R/CombineData.R')
 
-protrait_table <- CleanProTrait()
-bacdive_table <- BacDiveCrawler(usrname = <USERNAME>, pass = <PASSWORD>)
-combine_table <- CombineData(protrait_table, bacdive_table)
+# Source microbe information
+##########################################
+# Protraits
+protrait <- clean.protrait()
+
+# IJSEM
+ijsem <- parse.ijsem()
+
+# BacMap
+bacmap <- bacmap.crawler()
+
+# BacDive 
+bacdive <- bacdive.crawler()
+
+##########################################
+# Combine microbe tables
+all_table <- list(protrait, ijsem, bacmap, bacdive)
+total_table <- combine.data(all_table)
 ```
 
 ### Sourcing Metabolite Data
