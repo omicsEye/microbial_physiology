@@ -168,28 +168,129 @@ clean.single.trait <- function(trait) {
   return(trait)
 }
 
-# create dictionary from data frame
-dictionary <- read.csv('Data/TableDictionary.csv', stringsAsFactors = FALSE, check.names = FALSE)
-dictionary <- data.frame(lapply(dictionary, trimws), stringsAsFactors = FALSE, check.names = FALSE)
+dict_key <-
+  c(
+    'Species',
+    'Domain',
+    'Kingdom',
+    'Phylum',
+    'Class',
+    'Order',
+    'Family',
+    'Genus',
+    'Metabolite Utilization',
+    'Enzymes',
+    'pH Tolerance',
+    'Gram Stain',
+    'Energy Source',
+    'Growth in Groups',
+    'Salt Tolerance',
+    'Motility',
+    'Oxygen Requirement',
+    'Cell Shape',
+    'Cell Length',
+    'Cell Width',
+    'Sporulation',
+    'Temperature Range',
+    "Type of Hemolysis",
+    "Hemolysis Ability",
+    "Colony Color",
+    "Colony Size",
+    "Colony Shape",
+    "Incubation Period",
+    "Type of Spore",
+    "Murein Short Key",
+    "Murein Types",
+    "Antibiotic Sensitivity",
+    "Antibiotic Resistance",
+    "Metabolite Production",
+    "Pathogenic in Humans",
+    "Pathogenic in Animals",
+    "Pathogenic in Plants",
+    "Flagella",
+    'Ecosystem',
+    'Pathogenic',
+    'Metabolism Type',
+    'Mobility',
+    'Radioresistance', 
+    'Cell Arrangement',
+    'Biotic Relationship',
+    'Number of membranes'
+  )
+
+dict_value <- 
+  list(
+    list('specie', 'Species', 'species name'),
+    list('Domain'),
+    list('Kingdom'),
+    list('Phylum'),
+    list('Class'),
+    list('Order'),
+    list('Family'),
+    list('Genus', 'Genus name'),
+    list('metabolite usage', 'Metabolite Utilization', 'Sole carbon substrate use'),
+    list('enzymes'),
+    list('pH', 'pH range at which growth occurred'),
+    list('gram stain', 'Gram stain', 'gram status', 'Gram staining properties'),
+    list('energy source', 'Nutrition type', 'Energy source'),
+    list('growth in groups', 'Multicellular complex forming ability'),
+    list('halophilic', 'halophily', 'NaCl concentration range at which growth occurred (%)'),
+    list('motility', 'Motility'),
+    list('oxygen requirement', 'Oxygen tolerance', 'oxygen preference', 'Oxygen requirements'),
+    list('shape', 'Cell shape', 'cell shape', 'Shape'),
+    list('Cell length', 'mean length'),
+    list('Cell width', 'mean width'),
+    list('sporulation', 'Ability of spore formation', 'spore production', 'Sporulation'),
+    list('temperature range', 'Temperature range'),
+    list("Type of hemolysis"),
+    list("Hemolysis Ability"),
+    list("Colony color"),
+    list("Colony size"),
+    list("Colony shape"),
+    list("Incubation period"),
+    list('Type of spore'),
+    list("Murein short key"),
+    list("Murein types"),
+    list("Antibiotic Sensitivity"),
+    list("Antibiotic Resistance"),
+    list("Metabolite Production"),
+    list("Pathogenic in humans"),
+    list("Pathogenic in animals"),
+    list("Pathogenic in plants"),
+    list('Flagella', 'flagella', 'Flagellar presence'),
+    list('ecosystem', 'Habitat'),
+    list('pathogenic', 'Pathogenicity'),
+    list('metabolism', 'Metabolism assays', 'Metabolism'),
+    list('mobility', 'Mobility'),
+    list('radioresistance'),
+    list('cell arrangement', 'cell aggregation', 'Cell arrangement'),
+    list('biotic relationship', 'Biotic relationship'),
+    list('Number of membranes')
+  )
+
+names(dict_value) <- dict_key
 
 clean.table <- function(table) {
   # add columns to each data frame so that have same number / names
   for (i in 1:length(table)) {
-    names(table)[i] <- trimws(gsub('[^a-zA-Z ]+', "", names(table)[i], perl = TRUE))
+    names(table)[i] <- gsub('[^a-zA-Z ]+', "", names(table)[i], perl = TRUE)
     
     correct_name <-
-      names(dictionary)[which(names(table)[i] == dictionary, arr.ind = TRUE)[2]]
-    print(which(names(table)[i] == dictionary, arr.ind = TRUE))
+      dict_key[which(grepl(
+        paste0('\\b',names(table)[i], '\\b'),
+        dict_value,
+        ignore.case = TRUE
+      ))]
     if(length(correct_name) > 0) {
       names(table)[i] <- correct_name
     }
   }
   
   # remove excess
-  table <- table[, names(table) %in% names(dictionary)]
+  table <- table[, names(table) %in% dict_key]
   
   # add missing
-  for (name in names(dictionary)) {
+  for (name in dict_key) {
     if (!(name %in% names(table))) {
       new_column <- data.frame(matrix(NA, nrow = nrow(table), ncol = 1))
       names(new_column) <- name
@@ -200,27 +301,48 @@ clean.table <- function(table) {
   return(table)
 }
 
-combine.data <- function(data, save_file = TRUE) {
-  total_table <- list()
-  for (i in 1:length(data)) {
-    total_table <- rbindlist(list(total_table, clean.table(data[[i]])), fill = TRUE, use.names = TRUE)
+protrait <- read.csv('Data/Other/ProTrait_v2019-07-29.csv', stringsAsFactors = FALSE, check.names = FALSE)
+ijsem <- read.csv('Data/IJSEM_v2019-08-14.csv', stringsAsFactors = FALSE, check.names = FALSE)
+bacmap <- read.csv('Data/Other/BacMap_v2019-08-08.csv',stringsAsFactors = FALSE, check.names = FALSE)
+bacdive <- read.csv('Data/Other/BacDive_v2019-07-30.csv', stringsAsFactors = TRUE, check.names = FALSE)
+
+protrait <- clean.table(protrait)
+ijsem <- clean.table(ijsem)
+bacmap <- clean.table(bacmap)
+bacdive <- clean.table(bacdive)
+
+# for (i in 1:nrow(ijsem)) {
+#   ijsem$Species[i] <- paste0(ijsem$Genus[i], ' ', ijsem$Species[i])
+# }
+
+# rbind all data frames
+total_table <- rbindlist(list(protrait, ijsem, bacmap, bacdive), fill = TRUE, use.names = TRUE)
+
+total_table <- clean.repeat(total_table)
+message("Merged duplicate species entries")
+total_table <- clean.trait(total_table)
+message("Removed entry synonyms")
+total_table <- clean.nutrition(total_table)
+message("Renamed nutrition requirements")
+total_table <- apply(total_table, c(1, 2), order.string)
+total_table <- as.data.frame(total_table, stringsAsFactors = FALSE, check.names = FALSE)
+message("Sorted entries by alphabetical order")
+
+# do clean up methods 
+
+l <- dict_value[which(dict_key == 'a')][[1]][[1]]
+l <- dict_key[which(grepl('specie', dict_value, Encoding("UTF-8")))]
+
+
+for (i in 1:length(total_table)) {
+  for (j in 1:nrow(total_table)) {
+    if (length(total_table[j, i]) == 0) {
+      print(paste0(i, " ", j))
+    }
   }
-  
-  total_table <- clean.repeat(total_table)
-  message("Merged duplicate species entries")
-  total_table <- clean.trait(total_table)
-  message("Removed entry synonyms")
-  total_table <- clean.nutrition(total_table)
-  message("Renamed nutrition requirements")
-  total_table <- apply(total_table, c(1, 2), order.string)
-  total_table <- as.data.frame(total_table, stringsAsFactors = FALSE, check.names = FALSE)
-  message("Sorted entries by alphabetical order")
-  
-  if (save_file) {
-    write.csv(total_table,
-              paste0("mxp_microbiome_v", Sys.Date(), ".csv"),
-              row.names = FALSE)
-  }
-  
-  return(total_table)
 }
+
+
+# create dictionary from data frame
+dictionary <- read.csv('Data/TableDictionary.csv')
+

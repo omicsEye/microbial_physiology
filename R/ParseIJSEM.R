@@ -24,5 +24,9 @@ parse.ijsem <- function() {
     }
   }
   
+  write.csv(raw_table,
+            paste0("IJSEM_v", Sys.Date(), ".csv"),
+            row.names = FALSE)
+  
   return(raw_table)
 }
