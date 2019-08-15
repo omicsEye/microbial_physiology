@@ -8,7 +8,7 @@ source('R/CombineData.R')
 # Source microbe information
 ##########################################
 # Protraits
-protrait <- CleanProtrait()
+protrait <- clean.protrait()
 
 # IJSEM
 ijsem <- parse.ijsem()
@@ -17,10 +17,12 @@ ijsem <- parse.ijsem()
 bacmap <- bacmap.crawler()
 
 # BacDive 
-bacdive <- BacDiveCrawler()
+bacdive <- bacdive.crawler()
 
 ##########################################
 # Combine microbe tables
+all_table <- list(protrait, ijsem, bacmap, bacdive)
+total_table <- combine.data(all_table)
 
 ##########################################
 # Source metabolite table

@@ -1,5 +1,5 @@
 # adding an entry to a cell so that do not overwrite previous information
-AddToCell <- function(cell, new_entry) {
+add.to.cell <- function(cell, new_entry) {
   # if no previous entry
   if (cell == "" | is.na(cell)) {
     return(new_entry)
@@ -10,7 +10,7 @@ AddToCell <- function(cell, new_entry) {
 }
 
 # get trait from column name given cell
-GetTrait <- function(col_names, current_column) {
+get.trait <- function(col_names, current_column) {
   trait <- col_names[current_column]
   trait <-
     gsub('[[:punct:]]', ' ', substring(trait, regexpr("\\.", trait)[[1]][1] + 1))
@@ -18,7 +18,7 @@ GetTrait <- function(col_names, current_column) {
 }
 
 # Organize ProTrait table into clean format
-CleanProTrait <- function(save_file = TRUE) {
+clean.protrait <- function(save_file = TRUE) {
   # known traits that are going to be extracted
   column_names <-
     c(
@@ -75,7 +75,7 @@ CleanProTrait <- function(save_file = TRUE) {
   message("Began ProTrait extraction")
   while (current_line <= num_rows) {
     # extract data one microbe at a time
-    current_row <- raw_table[current_line,]
+    current_row <- raw_table[current_line, ]
     
     # prompt user about progress
     if (current_line %% 500 == 0) {
@@ -113,13 +113,13 @@ CleanProTrait <- function(save_file = TRUE) {
               grepl("trypsin", current_name)) {
             enzyme_cell <- refined_table[current_line, "enzymes"]
             refined_table[current_line, "enzymes"] <-
-              AddToCell(enzyme_cell, GetTrait(names(raw_table), current_column))
+              add.to.cell(enzyme_cell, get.trait(names(raw_table), current_column))
             
             # or its a metabolite
           } else {
             meta_cell <- refined_table[current_line, "metabolite usage"]
             refined_table[current_line, "metabolite usage"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get remaining metadata
@@ -129,56 +129,56 @@ CleanProTrait <- function(save_file = TRUE) {
               grepl("habitat", current_name)) {
             meta_cell <- refined_table[current_line, "ecosystem"]
             refined_table[current_line, "ecosystem"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get pH type
           if (grepl("phenotype", current_name)) {
             meta_cell <- refined_table[current_line, "pH"]
             refined_table[current_line, "pH"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get biotic relationship
           if (grepl("bioticrelationship", current_name)) {
             meta_cell <- refined_table[current_line, "biotic relationship"]
             refined_table[current_line, "biotic relationship"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get cell arrangement
           if (grepl("cellarrangement", current_name)) {
             meta_cell <- refined_table[current_line, "cell arrangement"]
             refined_table[current_line, "cell arrangement"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get energy source
           if (grepl("energysource", current_name)) {
             meta_cell <- refined_table[current_line, "energy source"]
             refined_table[current_line, "energy source"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get flagella
           if (grepl("flagellarpresence", current_name)) {
             meta_cell <- refined_table[current_line, "flagella"]
             refined_table[current_line, "flagella"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get growth in groups
           if (grepl("growth_in_groups", current_name)) {
             meta_cell <- refined_table[current_line, "growth in groups"]
             refined_table[current_line, "growth in groups"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get halophilic
           if (grepl("halophilic", current_name)) {
             meta_cell <- refined_table[current_line, "halophilic"]
             refined_table[current_line, "halophilic"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get pathogenic
@@ -190,63 +190,63 @@ CleanProTrait <- function(save_file = TRUE) {
           grepl("pathogen", current_name)) {
             meta_cell <- refined_table[current_line, "pathogenic"]
             refined_table[current_line, "pathogenic"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get metabolism
           if (grepl("metabolism", current_name)) {
             meta_cell <- refined_table[current_line, "metabolism"]
             refined_table[current_line, "metabolism"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get mobility
           if (grepl("mobility", current_name)) {
             meta_cell <- refined_table[current_line, "mobility"]
             refined_table[current_line, "mobility"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get motility
           if (grepl("motility", current_name)) {
             meta_cell <- refined_table[current_line, "motility"]
             refined_table[current_line, "motility"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get oxygen requirement
           if (grepl("oxygenreq", current_name)) {
             meta_cell <- refined_table[current_line, "oxygen requirement"]
             refined_table[current_line, "oxygen requirement"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get radioresistance
           if (grepl("radioresistance", current_name)) {
             meta_cell <- refined_table[current_line, "radioresistance"]
             refined_table[current_line, "radioresistance"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get shape
           if (grepl("shape", current_name)) {
             meta_cell <- refined_table[current_line, "shape"]
             refined_table[current_line, "shape"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get sporulation
           if (grepl("sporulation", current_name)) {
             meta_cell <- refined_table[current_line, "sporulation"]
             refined_table[current_line, "sporulation"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
           
           # get temperature range
           if (grepl("temperaturerange", current_name)) {
             meta_cell <- refined_table[current_line, "temperature range"]
             refined_table[current_line, "temperature range"] <-
-              AddToCell(meta_cell,  GetTrait(names(raw_table), current_column))
+              add.to.cell(meta_cell,  get.trait(names(raw_table), current_column))
           }
         }
       }
@@ -264,5 +264,3 @@ CleanProTrait <- function(save_file = TRUE) {
   message("Completed pro trait data grab")
   return(refined_table)
 }
-
-protrait <- CleanProTrait(save_file = FALSE)

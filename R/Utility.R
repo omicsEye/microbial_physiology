@@ -102,3 +102,43 @@ normalize.ihmp <- function(ihmp) {
   ihmp[is.na(ihmp)] <- 0
   return(ihmp)
 }
+
+# given a cell entry, update it based on a new entry
+update.cell <- function(current_entry, new_entry) {
+  if (length(new_entry) > 0 && !is.na(new_entry)) {
+    if (length(new_entry) == 1) {
+      # update if no previous entry
+      if (length(current_entry) <= 0 || is.na(current_entry)) {
+        return(paste0(new_entry, collapse = '.'))
+        
+        # update if new entry is novel
+      } else if (!grepl(new_entry, current_entry, fixed = TRUE)) {
+        return(paste(
+          current_entry,
+          new_entry,
+          sep = ', ',
+          collapse = ", "
+        ))
+        
+        # do not update if new entry not novel
+      } else {
+        return(current_entry)
+      }
+      
+      # split if mutliple items in entry
+    } else if (length(new_entry) >= 1) {
+      for (i in new_entry) {
+        current_entry <- update.cell(current_entry, i)
+      }
+      return(current_entry)
+    }
+    
+    # do not update if no new entry
+  } else if (!is.na(current_entry)) {
+    return(current_entry)
+    
+    # entry remains NA
+  } else {
+    return(NA)
+  }
+}

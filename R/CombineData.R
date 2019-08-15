@@ -1,71 +1,7 @@
 library(data.table)
 library(foreach)
 
-UpdateCell <- function(current_entry, new_entry) {
-  if (length(new_entry) > 0 && !is.na(new_entry)) {
-    if (length(new_entry) == 1) {
-      # update if no previous entry
-      if (length(current_entry) <= 0 || is.na(current_entry)) {
-        return(paste0(new_entry, collapse = '.'))
-        
-        # update if new entry is novel
-      } else if (!grepl(new_entry, current_entry, fixed = TRUE, useBytes = TRUE)) {
-        return(paste(
-          current_entry,
-          new_entry,
-          sep = ', ',
-          collapse = ", "
-        ))
-        
-        # do not update if new entry not novel
-      } else {
-        return(current_entry)
-      }
-      
-      # split if mutliple items in entry
-    } else if (length(new_entry) >= 1) {
-      for (i in new_entry) {
-        current_entry <- UpdateCell(current_entry, i)
-      }
-      return(current_entry)
-    }
-    
-    # do not update if no new entry
-  } else if (length(current_entry) > 0 && !is.na(current_entry)) {
-    return(current_entry)
-    
-    # entry remains NA
-  } else {
-    return(NA)
-  }
-}
-
-# Given a previously existing entry, add only new information
-UpdateEntry <- function(old_entry, entry) {
-  new_entry <- old_entry
-  if (is.character(entry)) {
-    if (is.character(old_entry)) {
-      # get list of metadata in new entry
-      new_values <- as.list(strsplit(entry, ", ")[[1]])
-      
-      # check, only add new entries
-      for (j in 1:length(new_values)) {
-        if (!grepl(new_values[j], new_entry, Encoding("UTF-8"))) {
-          new_entry <- paste(new_entry, new_values[j], sep = ", ")
-        }
-      }
-      return(new_entry)
-      
-      # if no previous entry
-    } else {
-      return(entry)
-    }
-    
-    # unable to update entry
-  } else {
-    return(old_entry)
-  }
-}
+source('R/Utility.R')
 
 order.string <- function(string) {
   return(paste(sort(unique(trimws(as.vector(strsplit(string, ",")[[1]])))), collapse = ','))
@@ -85,7 +21,7 @@ clean.repeat <- function(table) {
       check.row <- clean.table[row_num, , drop = FALSE]
       
       for(j in 1:ncol(check.row)) {
-        check.row[1, j] <- UpdateCell(clean.table[row_num, j], table[i, j])
+        check.row[1, j] <- update.cell(clean.table[row_num, j], table[i, j])
       }
       clean.table <- rbind(clean.table[-c(row_num), ], check.row, stringsAsFactors = FALSE)
       
@@ -141,7 +77,7 @@ clean.trait <- function(table, trait_name = 'Oxygen Requirement') {
       } else {
         new_entry <- ''
         for(j in individual) {
-          new_entry <- UpdateCell(new_entry, clean.single.trait(j))
+          new_entry <- update.cell(new_entry, clean.single.trait(j))
         }
         table[i, trait_name] <- order.string(substring(new_entry, 3))
       }
