@@ -88,8 +88,12 @@ correlogram <- create.correlogram(data = <ABUNDANCE>, feature_meta = <METADATA>,
 ------------------------------------------------------------------------------------------------------------------------------
 
 ### Sources 
-The [Bacterial Diversity Database](https://bacdive.dsmz.de), or “Bacdive”, is a database that provides microbial physiology data. It was created by and is maintained by the German Collection of Microorganisms and Cell Cultures GmbH. The [paper](https://academic.oup.com/nar/article/47/D1/D631/5106998) details how it was procured. 
+The [Bacterial Diversity Database](https://bacdive.dsmz.de), or “Bacdive”, is a database that provides bacterial physiology data. It was created by and is maintained by the German Collection of Microorganisms and Cell Cultures GmbH. The [paper](https://academic.oup.com/nar/article/47/D1/D631/5106998) details how it was procured.\ 
 
-The [ProTraits Atlas](http://protraits.irb.hr) describes microbial phenotypic traits. Multiple tables currently exist, and this script opts for data that is considered at least 90 % accurate in order to maximize the amount of accurate, recovered data. It was created by and is maintained by the Rudjer Boskovic Institute. Details about it can be found in the [paper](https://academic.oup.com/nar/article/44/21/10074/2290929). 
+The [ProTraits Atlas](http://protraits.irb.hr) describes microbial phenotypic traits. Multiple tables currently exist, and this script opts for data that is considered at least 90 % accurate in order to maximize the amount of accurate, recovered data. It was created by and is maintained by the Rudjer Boskovic Institute. Details about it can be found in the [paper](https://academic.oup.com/nar/article/44/21/10074/2290929).\ 
+
+The [BacMap Database](http://bacmap.wishartlab.com) provides bacterial phenotypic traits. It is developed and maintained by the Wishart Lab at the University of Alberta. More details are found in its [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3245156/). 
+
+The [database](https://figshare.com/articles/International_Journal_of_Systematic_and_Evolutionary_Microbiology_IJSEM_phenotypic_database/4272392) compiled by Albert Barberan from the [International Journal of Systematic and Evolutionary Microbiology](https://microbiologysociety.org) provides microbial phenotypic data. Details can be found in this [paper](https://msphere.asm.org/content/2/4/e00237-17) 
 
 The [Human Metabolome Database](http://www.hmdb.ca) gives a combination of clinical, chemical, and biological properties of metabolites found in the human body. It was created and is maintained by the Wishart Lab as part of the Metabolomics Inovation Center. This [paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5753273/) gives more details. 
