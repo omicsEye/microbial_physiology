@@ -1,3 +1,14 @@
+#' Enrichment Analysis
+#' Determines ratio of trait possessing to non-trait possessing across all samples
+#' 
+#' @param data_table abundance table of samples
+#' @param meta_data table of types and their traits
+#' @param category which trait type to perform enrichment on
+#' @param trait specific trait to determine if possesses
+#' @param na_omit whether to eliminate all species that do not know trait of
+#' 
+#' @return ratios 
+#' @export
 enrichmentAnalysis <- function(data_table, meta_data, category, trait, na_omit = TRUE) {
   
   meta_data <- meta_data[, category, drop = FALSE]
@@ -34,5 +45,8 @@ enrichmentAnalysis <- function(data_table, meta_data, category, trait, na_omit =
   return(ratios)
 }
 
+
+# densityOf <- density(ratios)
 # plot(densityOf, xlim = c(min(densityOf$x), 10))
 # abline(v = 1, lty = 3)
+# pValue <- t.test(ratios, mu = 1)

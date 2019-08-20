@@ -21,4 +21,5 @@ create.microbe.data.table <- function() {
   # Combine microbe tables
   all_table <- list(protrait, ijsem, bacmap, bacdive)
   total_table <- combine.data(all_table)
+  return(total_table)
 }
