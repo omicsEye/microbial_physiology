@@ -8,14 +8,8 @@ For a more indepth look at each function, refer to the [wiki](https://github.com
 Aside from the listed requirements, using BacDive requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
 Parameters can be supplied to each function, as well.  
 
-To run it manually, execute: (This is also found in the R/CreateDataTable.R file)
+To run it manually, execute:
 ```R
-source('R/CleanProTrait.R')
-source('R/ParseIJSEM.R')
-source('R/BacMapCrawler.R')
-source('R/BacDiveApiCrawler.R')
-source('R/ParseHMDB.R')
-source('R/CombineData.R')
 
 # Source microbe information
 ##########################################
