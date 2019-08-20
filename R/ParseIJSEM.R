@@ -1,3 +1,8 @@
+#' Parse IJSEM datatable
+#' @details downloads a local copy of the IJSEM datatable and cleans
+#'
+#' @return a data frame representation of the IJSEM datatable
+#' @export
 parse.ijsem <- function() {
   # download data table
   if (!file.exists('IJSEM_pheno_db_v1.0.txt')) {
@@ -18,15 +23,15 @@ parse.ijsem <- function() {
     # merge species and genus name
     raw_table$`species name`[i] <-
       paste0(raw_table$`Genus name`[i], " ", raw_table$`species name`[i])
-    # merge other and eco system 
+    # merge other and eco system
     if (!is.na(raw_table$Habitat[i]) && raw_table$Habitat[i] == 'other') {
       raw_table$Habitat[i] <- raw_table$`If 'other' was chosen above, please enter a habitat below`[i]
     }
   }
-  
+
   write.csv(raw_table,
             paste0("IJSEM_v", Sys.Date(), ".csv"),
             row.names = FALSE)
-  
+
   return(raw_table)
 }

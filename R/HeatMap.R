@@ -23,20 +23,20 @@ save.figure <- function(figure, file_location = '') {
 create.unique.color <- function(a, b) {
   color <-
     grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
-  
+
   annotation_color_count <-
     sum(sapply(a, function(x)
       length(unique(x)))) +
     sum(sapply(b, function(x)
       length(unique(x))))
-  
+
   newColsMeta <-
     lapply(b, function(x)
       color[seq(18, length(color), floor(length(color) / length(na.omit(unique(x)))))])
   for (i in 1:length(newColsMeta)) {
     names(newColsMeta[[i]]) <- unique(na.omit(b[, i]))
   }
-  
+
   newColsMicrobe <-
     lapply(a, function(x)
       color[seq(18, length(color), floor(length(color) / length(na.omit(unique(x)))))])
@@ -54,25 +54,25 @@ create.correlogram <-
            omit = TRUE,
            cluster_distance_method = 'euclidean') {
     data[is.na(data)] <- 0
-    
+
     if (omit) {
       # remove incomplete data
       feature_meta <- na.omit(feature_meta)
-      
+
       # Filter out data and meta data that do not have corresponding part
       feature_meta <-
         # Eliminates rows in metadata not in abundance table
         feature_meta[(rownames(feature_meta) %in% rownames(data)), , drop = FALSE]
-      
+
       data <- # Eliminates rows in abundance table not in metadata
         data[(rownames(data) %in% rownames(feature_meta)), , drop = FALSE]
     }
-    
+
     data <- t(data)
     data <- # Get rid of 0 correlation
       data[, apply(data, 2, var, na.rm = TRUE) != 0]
     corMat <- cor(data, method = "spearman")
-    
+
     return(
       pheatmap(
         corMat,
@@ -121,46 +121,46 @@ multi.correlogram <- function(data_tables, sample_datas) {
       )
     )
   }
-  
+
   unrefined_sample_datas <- sample_datas
-  
+
   # check that user inputed valid data
   if (!is.list(data_tables))
     stop("Was not given list of data tables")
   if (!is.list(sample_datas))
     stop("was not given list of sample data")
-  
+
   # create single dataframe from list of data frames for abudnance tables
   data_tables_names <- lapply(data_tables, row.names)
   data_tables <- lapply(data_tables, as.data.frame)
   data_tables <-
     as.data.frame(rbindlist(data_tables, fill = TRUE, use.names = TRUE))
   row.names(data_tables) <- unlist(data_tables_names)
-  
+
   # create single dataframe from list of data frames for meta data
   sample_datas_names <- lapply(sample_datas, row.names)
   sample_datas <- lapply(sample_datas, as.data.frame)
   sample_datas <-
     as.data.frame(rbindlist(sample_datas, fill = TRUE, use.names = TRUE))
   row.names(sample_datas) <- unlist(sample_datas_names)
-  
+
   # Filter out data and meta data that do not have corresponding part
   sample_datas <-
     # Eliminates rows in metadata not in abundance table
     sample_datas[(rownames(sample_datas) %in% rownames(data_tables)), , drop = FALSE]
-  
+
   data_tables <-
     # Eliminates rows in abundance table not in metadata
     data_tables[(rownames(data_tables) %in% rownames(sample_datas)), , drop = FALSE]
-  
+
   data_tables[is.na(data_tables)] <- 0
-  
+
   data_tables <- t(data_tables)
   data_tables <- # Get rid of 0 correlation
     data_tables[, apply(data_tables, 2, var, na.rm = TRUE) != 0]
-  
+
   corMat <- cor(data_tables, method = "spearman")
-  
+
   # create heatmaps from all possible pairings of abundance tables
   mat <- list()
   for (i in 1:length(sample_datas_names)) {
@@ -186,24 +186,24 @@ create.heatmap <-
            cluster_distance_method = 'euclidean') {
     # Filter out missing data
     data[is.na(data)] <- 0
-    
+
     if (omit_na) {
       # Filter out data and meta data that do not have corresponding part
       feature_meta <-
         # Eliminates rows in metadata not in abundance table
         feature_meta[(rownames(feature_meta) %in% rownames(data)), , drop = FALSE]
-      
+
       data <- # Eliminates rows in abundance table not in metadata
         data[(rownames(data) %in% rownames(feature_meta)), , drop = FALSE]
-      
+
       sample_meta <-
         # Eliminates rows in metadata not in abundance table
         sample_meta[(rownames(sample_meta) %in% colnames(data)),  , drop = FALSE]
-      
+
       data <-
         data[, (colnames(data) %in% rownames(sample_meta)), drop = FALSE]
     }
-    
+
     if (filter == 'abundance') {
       data <-
         data[rowMeans(data) >= quantile(rowMeans(data), percentile),]
@@ -211,15 +211,15 @@ create.heatmap <-
       data <-
         data[apply(data, 1, var) >= quantile(apply(data, 1, var), percentile),]
     }
-    
+
     # data[data > 0] <- sqrt(data[data > 0])
     # data[data < 0] <- sqrt(abs(data[data < 0])) * -1
     data <- data / max(data)
-    
+
     breaksList = seq(min(data) - min(data) / 500,
                      max(data) + max(data) / 500,
                      by = max(data) / 500)
-    
+
     return(
       pheatmap(
         data,
@@ -287,7 +287,7 @@ one.v.all <-
            trait,
            cluster_distance_method = "euclidean") {
     meta <- ""
-    
+
     if (which == 1) {
       meta <-
         as.data.frame(sample_meta[, column], row.names = rownames(sample_meta))
@@ -296,7 +296,7 @@ one.v.all <-
         as.data.frame(feature_meta[, column], row.names = rownames(feature_meta))
     }
     names(meta) <- column
-    
+
     get.trait <- function(x) {
       if (!grepl(trait, x, fixed = TRUE)) {
         return('other')
@@ -304,12 +304,12 @@ one.v.all <-
         return(trait)
       }
     }
-    
+
     raw_meta <- lapply(meta[, column], get.trait)
-    
+
     meta[, column] <- t(as.data.frame(raw_meta))
-    
-    
+
+
     if (which == 1) {
       sample_meta <- meta
     } else {
@@ -347,7 +347,7 @@ all.one.v.all <-
         unique(unlist(strsplit(as.character(feature_meta[, column]), ",")))
     }
     all_observers <- all_observers[!is.na(all_observers)]
-    
+
     create <- function(x) {
       plot <-
         one.v.all(
@@ -370,6 +370,6 @@ all.one.v.all <-
         dpi = 300
       )
     }
-    
+
     lapply(all_observers, create)
   }
