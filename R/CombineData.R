@@ -109,21 +109,22 @@ clean.trait <- function(table, trait_name = 'Oxygen Requirement') {
 }
 
 #' clean the trait column (currently only for oxygen requirements)
-#' @param trait the synoymn
+#' @param trait the synonymn
 #'
 #' @return the predetermined name based on the synonym given
 clean.single.trait <- function(trait) {
   trait_dictionary <-
     list(
-      list("anaerobe", "strictanaero", "anaero", "obligate anaerobe", "anaerobic"),
-      list("aerobe", "strictaero", "aero", "obligate aerobe", "aerobic"),
+      list("anaerobe", "strictanaero", "anaero", "obligate anaerobe", "anaerobic", "obligate anaerobic"),
+      list("aerobe", "strictaero", "aero", "obligate aerobe", "aerobic", "obligate aerobic"),
       list("facultative aerobe", "facultative anaerobe", "facultative"),
-      list("microaerophile", "microaerophilic")
+      list("microaerophile", "microaerophilic", "microerophile"),
+      list("aerotolerant", "microaerotolerant")
     )
-  names(trait_dictionary) <- c("anaerobe", "aerobe", "facultative", "microaerophile")
+  names(trait_dictionary) <- c("anaerobe", "aerobe", "facultative", "microaerophile", "aerotolerant")
 
   for(j in 1:length(trait_dictionary)) {
-    if(any(trait == trait_dictionary[[j]])) {
+    if(any(tolower(trait) == trait_dictionary[[j]])) {
       return(names(trait_dictionary)[j])
     }
   }
