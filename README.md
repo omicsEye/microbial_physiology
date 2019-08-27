@@ -5,10 +5,15 @@
 For a more indepth look at each function, refer to the [wiki](https://github.com/broadinstitute/m2interact/wiki)
 
 ### Sourcing Microbial Data 
-Aside from the listed requirements, using BacDive requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
+Install the required dependencies using `install.packages(c(Jupyter, RCurl, rjson, IRKernal, pheatmap, ggplot2, RColorBrewer, XML, foreach, parallel, doParallel, data.table, utils, rlist, crul, jsonlite, R.utils, rvest, colorspace, recommenderlab, RAM))`
+
+Source all files found in the R folder (if the package is not built)\
+Be sure to set the working directory to the m2Interact folder `setwd("~/<PATH>/m2Interact")`
+
+Using the BacDive API requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
 Parameters can be supplied to each function, as well.  
 
-To run it manually, execute:
+In order to create the table using default settings, run:
 ```R
 
 # Source microbe information
@@ -23,19 +28,21 @@ ijsem <- parse.ijsem()
 bacmap <- bacmap.crawler()
 
 # BacDive 
-bacdive <- bacdive.crawler()
+bacdive <- bacdive.crawler(<USERNAME>, <PASSWORD>)
 
 ##########################################
 # Combine microbe tables
 all_table <- list(protrait, ijsem, bacmap, bacdive)
 total_table <- combine.data(all_table)
 ```
+A .csv will be saved locally 
 
 ### Sourcing Metabolite Data
 To parse the hmdb database, run:
 ```R
 parse.hmdb()
 ```
+A .csv will be saved locally\
 A file can be supplied which represents the name of the metabolite datatable file to parse (does not need to be provided if a local copy of the hmdb metabolite file does not exist). By default, it is *hmdb_metabolites.xml*.
 A link can be supplied which represents the URL download link for the metabolite datatable. By default, it is *http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip*
 
