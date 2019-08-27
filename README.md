@@ -7,8 +7,8 @@ For a more indepth look at each function, refer to the [wiki](https://github.com
 ### Sourcing Microbial Data 
 Install the required dependencies using `install.packages(c(Jupyter, RCurl, rjson, IRKernal, pheatmap, ggplot2, RColorBrewer, XML, foreach, parallel, doParallel, data.table, utils, rlist, crul, jsonlite, R.utils, rvest, colorspace, recommenderlab, RAM))`
 
-Source all files found in the R folder (if the package is not built)\
-Be sure to set the working directory to the m2Interact folder `setwd("~/<PATH>/m2Interact")`
+Be sure to set the working directory to the m2Interact folder using `setwd("~/<PATH>/m2Interact")`\
+Source all files found in the *R* folder (if the package is not built) 
 
 Using the BacDive API requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
 Parameters can be supplied to each function, as well.  
@@ -42,49 +42,34 @@ To parse the hmdb database, run:
 ```R
 parse.hmdb()
 ```
-A .csv will be saved locally\
-A file can be supplied which represents the name of the metabolite datatable file to parse (does not need to be provided if a local copy of the hmdb metabolite file does not exist). By default, it is *hmdb_metabolites.xml*.
-A link can be supplied which represents the URL download link for the metabolite datatable. By default, it is *http://www.hmdb.ca/system/downloads/current/hmdb_metabolites.zip*
+A .csv will be saved locally
 
 ### Creating Heatmaps
-First, run, `source('R/HeatMap.R')`
-
-Abundance data should be loaded from a .csv. A path and the column that contains the feature labels must be supplied.
-NOTE: The path must be from the working directory
+An example of creating a heat map of hmp1-II data annotating it with microbioal physiology
 ```R
-abundance_table <- load.abundance.data(path = <DATA>, column = <NUMBER>)
+# Microbe meta data
+microbe_meta_data <- load.meta.data('Resources/Microbe Meta Tables/mxp_microbiome_v2019-08-26.csv')
+microbe_meta_data <- microbe_meta_data[, c(7, 9, 16)]
+microbe_meta_data <- clear.small.entry(microbe_meta_data, 0.05)
+
+############################################################################
+# CREATE HMP1-II MICROBE HEATMAPS
+hmp_ot_abundance_table <- load.abundance.data('Resources/HMP/hmp1-II_metaphlan2-mtd-qcd.pcl_AbundanceTable_2019-07-09.csv')
+hmp_ot_abundance_table <- hmp_ot_abundance_table[, -1]
+hmp_ot_sample_data <- load.meta.data('Resources/HMP/SampleMetadata.csv')
+hmp_ot_sample_data <- hmp_ot_sample_data[, c(1, 3)]
+
+# heat map with all data
+hmp_ot_all_heatmap <- create.heatmap(data = hmp_ot_abundance_table,
+                                 sample_meta = hmp_ot_sample_data,
+                                 feature_meta = microbe_meta_data,
+                                 percentile = 0,
+                                 show = FALSE, 
+                                 omit_na = FALSE)
+save.figure(hmp_ot_all_heatmap)
 ```
 
-Meta data should be loaded from a .csv. A path and the column that contains the feature labels must be supplied.
-NOTE: The path must be from the working directory
-```R
-meta_data <- load.meta.data(path = <DATA>, tax.column = <NUMBER>)
-```
-This can be used to load both sample and feature metadata 
 
-In order to create a heatmap, use the following function, supplying the abundance table, sample metadata, feature metadata. 
-It includes the optional parameters of whether to filter clusters for a certain percentile, to show the heatmap when procuded, and whether to eliminate features that are missing metadata. 
-```R
-heatmap <- create.heatmap(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATURE>)
-```
-
-There is also the choice of creating heatmaps that compare only one feature type against all others in a feature category (ex. aerobic respiration v all other oxygen requirements). This requires the following function, with the new parameters being 
-* `which` represents whether to use the sample(1) or feature(2) metadata
-* `column` represents the name of the column of the feature category (ex. 'gram type')
-* `trait` represents the feature trait to isoloate (ex. 'variable') 
-```R
-one_heatmap <- one.v.all(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATURE>, which = <NUMBER>, column = <CATEGORY>, trait = <TYPE>)
-```
-
-The following method can be used to repeat this 'one v all' process for every trait type in a trait category, creating a heatmap for each. The produced heatmaps can be saved to a desired directory. 
-```R
-all.one.v.all(data = <ABUNDANCE>, sample_meta = <SAMPLE>, feature_meta = <FEATURE>, which = <NUMBER>, column = <CATEGORY>, directory = <PATH>)
-```
-
-Instead of a sample x feature heatmap, a correlogram heatmap can be produced. Providing metadata and an abundance data, use the following function
-```R
-correlogram <- create.correlogram(data = <ABUNDANCE>, feature_meta = <METADATA>, show = TRUE)
-```
 
 ------------------------------------------------------------------------------------------------------------------------------
 
