@@ -193,57 +193,6 @@ multi.correlogram <-
       }
     }
     return(mat)
-    
-    # sample_datas <- as.data.frame(apply(sample_datas, c(1, 2), as.character), check.names = FALSE, stringsAsFactors = FALSE)
-    
-    # data_tables[is.na(data_tables)] <- 0
-    #
-    # data_tables <- t(data_tables)
-    
-    
-    
-    # data_tables <- # Get rid of 0 correlation
-    #   data_tables[, apply(data_tables, 2, var, na.rm = TRUE) != 0]
-    
-    # corMat <- cor(data_tables, method = "spearman")
-    #
-    # if (omit) {
-    #   corMat <- corMat[row.names(corMat) %in% row.names(sample_datas), colnames(corMat) %in% row.names(sample_datas)]
-    #   sample_datas <- sample_datas[row.names(sample_datas) %in% row.names(corMat), ]
-    # }
-    
-    # all_mat <- list()
-    #
-    # for (i in 1:length(dt)) {
-    #   for (j in 1:length(dt)) {
-    #     temp <-
-    #       data_tables[row.names(data_tables) %in% dt[[i]], colnames(data_tables) %in% dt[[j]]]
-    #
-    #     temp <- # Get rid of 0 correlation
-    #       temp[, apply(temp, 2, var, na.rm = TRUE) != 0]
-    #
-    #     corMat <-
-    #       cor(temp, method = "spearman")
-    #
-    #     all_mat[[(i - 1) * length(sample_datas_names) + j]] <-
-    #       pheatmap(
-    #         # mat = corMat[row.names(corMat) %in% dt[[i]],
-    #         #               colnames(corMat) %in% dt[[j]]],
-    #         mat = corMat,
-    #         annotation_row = sample_datas,
-    #         annotation_col = sample_datas,
-    #         show_colnames = FALSE,
-    #         show_rownames = FALSE,
-    #         treeheight_row = 0,
-    #         treeheight_col = 0,
-    #         fontsize = 4,
-    #         border = TRUE,
-    #         cluster_cols = TRUE,
-    #         cluster_rows = TRUE,
-    #         silent = TRUE
-    #       )
-    #   }
-    # }
   }
 
 # create a heat map given abundance data, sample metadata, and feature metadata
@@ -330,6 +279,7 @@ all.heatmap <-
            sample_meta,
            feature_meta,
            percentile = 0.75,
+           filter = '',
            show = FALSE,
            omit_na = FALSE,
            file_location = '',
@@ -342,6 +292,7 @@ all.heatmap <-
           sample_meta = sample_meta,
           feature_meta = feature_meta[, i, drop = FALSE],
           percentile = percentile,
+          filter = filter,
           show = show,
           omit_na = omit_na,
           cluster_distance_method = cluster_distance_method

@@ -13,6 +13,12 @@ hmp_ot_abundance_table <- hmp_ot_abundance_table[, -1]
 hmp_ot_sample_data <- load.meta.data('Resources/HMP/SampleMetadata.csv')
 hmp_ot_sample_data <- hmp_ot_sample_data[, c(1, 3)]
 
+# heatmap for each morphological property
+all.heatmap(data = hmp_ot_abundance_table,
+            sample_meta = hmp_ot_sample_data,
+            feature_meta = microbe_meta_data,
+            filter = 'abundance')
+
 # heat map with all data
 hmp_ot_all_heatmap <- create.heatmap(data = hmp_ot_abundance_table,
                                  sample_meta = hmp_ot_sample_data,
@@ -58,6 +64,11 @@ ihmp_abundance_table <- load.abundance.data('Resources/iHMP/taxonomic_profiles.t
 ihmp_abundance_table <- ihmp_abundance_table[, -c(1)]
 ihmp_microbe_sample_data <- load.meta.data('Resources/IHMP/hmp2_metadata.csv', tax_column = 2)
 ihmp_microbe_sample_data <- ihmp_microbe_sample_data[, 70, drop = FALSE]
+
+# heatmap for each morphological property
+all.heatmap(data = ihmp_abundance_table,
+            sample_meta = ihmp_microbe_sample_data,
+            feature_meta = microbe_meta_data)
 
 # heat map with all data
 ihmp_all_heatmap <- create.heatmap(data = ihmp_abundance_table,

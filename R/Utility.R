@@ -21,9 +21,9 @@ read.excel <- function(path) {
 #' @return cleaned table
 #' @export
 clear.small.entry <- function(table, percentage) {
-  for(i in 1:ncol(table)) {
+  foreach(i = 1:ncol(table)) %do% {
     terms <- unique(table[, i])
-    for(j in 1:length(terms)) {
+    foreach(j = 1:length(terms)) %do% {
       if(length(which(table[, i] == terms[j])) / length(table[, i]) < percentage) {
         table[table == terms[j]] <- NA
       }
