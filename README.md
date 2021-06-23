@@ -7,8 +7,7 @@ For a more indepth look at each function, refer to the [wiki](https://github.com
 ### Sourcing Microbial Data 
 Install the required dependencies using `install.packages(c(Jupyter, RCurl, rjson, IRKernal, pheatmap, ggplot2, RColorBrewer, XML, foreach, parallel, doParallel, data.table, utils, rlist, crul, jsonlite, R.utils, rvest, colorspace, recommenderlab, RAM))`
 
-Be sure to set the working directory to the m2Interact folder using `setwd("~/<PATH>/m2Interact")`\
-Source all files found in the *R* folder (if the package is not built) 
+Source all files found in the *R* folder (if the package is not built). This can be done by setting the working directory to the R folder inside the m2Interact folder using `setwd("~/<PATH>/m2Interact/R")` and then running `files.sources = list.files()` and `sapply(files.sources, source)`. Then be sure to set the working directory to the m2Interact folder using `setwd("~/<PATH>/m2Interact")`.
 
 Using the BacDive API requires an account associated with the site. This can be created at this [registration link](https://bacdive.dsmz.de/api/bacdive/registration/register/). After doing so, a username and password need to be provided to the script in order to access the API and make requests to it. 
 Parameters can be supplied to each function, as well.  
